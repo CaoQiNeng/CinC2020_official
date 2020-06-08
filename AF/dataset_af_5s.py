@@ -75,9 +75,6 @@ class CinCDataset(Dataset):
 
             self.ecg_5s.append(temp_ecg)
 
-            if i == 10:
-                break
-
         self.Recording_5s = np.vstack(self.Recording_5s)
         self.ecg_5s = np.vstack(self.ecg_5s)
         self.First_label_5s = np.vstack(self.First_label_5s)
@@ -108,9 +105,9 @@ class CinCDataset(Dataset):
         label = np.zeros(len(class_map))
         label[First_label] = 1
         if not math.isnan(Second_label):
-            label[Second_label] = 1
+            label[int(Second_label)] = 1
         if not math.isnan(Third_label):
-            label[Third_label] = 1
+            label[int(Third_label)] = 1
 
         ecg = self.ecg_5s[index]
         ecg = np.array(ecg / 1000, dtype=np.float32)
