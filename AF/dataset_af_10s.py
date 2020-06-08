@@ -8,18 +8,23 @@ class CinCDataset(Dataset):
     def __init__(self, split, mode, csv):
         def seg_data_to_5s(ecg):
             ecg_5s = []
-            block_len = 10 * 500
+            block_len = 4 * 500
             ecg_len = ecg.shape[1]
             if ecg_len % block_len == 0 :
                 block_num = int(ecg_len / block_len)
             else:
                 block_num = int(ecg_len / block_len) + 1
 
-            for i in range(block_num):
-                if i == block_num - 1 :
-                    ecg_5s.append(ecg[:, -block_len : ])
-                else:
-                    ecg_5s.append(ecg[:, i * block_len : (i + 1) * block_len])
+            if block_num == 1:
+                temp_ecg = np.zeros((12, block_len), dtype=np.float32)
+                temp_ecg[:,-ecg_len:] = ecg[:,-block_len:]
+                ecg_5s.append(temp_ecg)
+            else:
+                for i in range(block_num):
+                    if i == block_num - 1 :
+                        ecg_5s.append(ecg[:, -block_len : ])
+                    else:
+                        ecg_5s.append(ecg[:, i * block_len : (i + 1) * block_len])
 
 
             ecg_5s = np.stack(ecg_5s)

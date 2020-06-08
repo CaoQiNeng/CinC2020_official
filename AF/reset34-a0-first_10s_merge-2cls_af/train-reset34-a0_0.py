@@ -120,7 +120,7 @@ def do_valid_merge(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 0
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_10s_merge-2cls_af'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_4s_merge-2cls_af'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00019740_model.pth'%(train_fold, valid_fold)
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_af/checkpoint/00009600_model.pth' % (
@@ -128,7 +128,7 @@ def run_train():
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
-    batch_size = 16 #8
+    batch_size = 128 #8
 
     ## setup  -----------------------------------------------------------------------------
     for f in ['checkpoint','train','valid','backup'] : os.makedirs(out_dir +'/'+f, exist_ok=True)
