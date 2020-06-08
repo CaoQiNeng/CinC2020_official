@@ -50,53 +50,6 @@ def do_valid(net, valid_loader, out_dir=None):
 
     return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
 
-def do_valid_merge(net, valid_loader, out_dir=None):
-    valid_loss = 0
-    ids = []
-    valid_predict = []
-    valid_truth = []
-    valid_num = 0
-
-    for t, (input, truth, infor) in enumerate(valid_loader):
-        batch_size = len(infor)
-
-        net.eval()
-        input  = input.cuda()
-        truth  = truth.cuda()
-
-        with torch.no_grad():
-            logit = data_parallel(net, input) #net(input)
-            probability = torch.sigmoid(logit)
-
-            loss = F.binary_cross_entropy(probability, truth)
-
-        for i in range(infor):
-            ids.append(infor[i].ecg_id)
-
-        valid_predict.append(probability.cpu().numpy())
-        valid_truth.append(truth.cpu().numpy().astype(int))
-
-        #---
-        valid_loss += loss.cpu().numpy() * batch_size
-
-        valid_num  += batch_size
-
-        print('\r %8d / %d'%(valid_num, len(valid_loader.dataset)),end='',flush=True)
-
-        pass  #-- end of one data loader --
-
-    assert(valid_num == len(valid_loader.dataset))
-    valid_loss = valid_loss / (valid_num+1e-8)
-
-    ids = np.vstack(ids)
-    print(ids)
-    valid_truth = np.vstack(valid_truth)
-    valid_predict = np.vstack(valid_predict)
-    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
-    valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
-
-    return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
-
 def run_train():
     train_fold = 0
     valid_fold = 0
@@ -262,15 +215,12 @@ def run_train():
             #if 0:
             if (iter % iter_valid==0):
                 CinC, valid_loss, valid_precision, valid_recall = do_valid(net, valid_loader, out_dir) #
-                CinC_merge, valid_loss_merge, valid_precision_merge, valid_recall_merge = do_valid_merge(net, valid_loader, out_dir)  #
                 pass
 
             if (iter % iter_log==0):
                 print('\r',end='',flush=True)
                 print(message(rate, iter, epoch, [train_accuracy, train_f_beta, train_g_beta, train_f_measure], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
-                print(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
-                log.write(message(rate, iter, epoch, CinC_merge, valid_loss_merge, valid_precision_merge, valid_recall_merge, mode='log',
-                                  train_mode='valid'))
+                log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
 
             #if 0:
