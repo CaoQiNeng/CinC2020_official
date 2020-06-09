@@ -164,7 +164,7 @@ def run_train():
     )
 
     val_dataset = CinCDataset(
-        mode='train',
+        mode='valid',
         csv='train.csv',
         split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
         # split='test_a%d-687.npy' % (train_fold),
