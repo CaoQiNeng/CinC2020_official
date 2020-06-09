@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_af_10s import *
+from dataset_af_4s import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -242,6 +242,22 @@ def run_train():
             precision_recall.append(p)
             precision_recall.append(r)
 
+        if train_mode == 'merge':
+            if precision_recall[0] + precision_recall[1] > merge_best_metric[0] + merge_best_metric[1] :
+                merge_best_metric[0] = precision_recall[0]
+                merge_best_metric[1] = precision_recall[1]
+
+            precision_recall[2] = merge_best_metric[0]
+            precision_recall[3] = merge_best_metric[1]
+
+        if train_mode == 'valid':
+            if precision_recall[0] + precision_recall[1] > valid_best_metric[0] + valid_best_metric[1] :
+                valid_best_metric[0] = precision_recall[0]
+                valid_best_metric[1] = precision_recall[1]
+
+            precision_recall[2] = valid_best_metric[0]
+            precision_recall[3] = valid_best_metric[1]
+
         if mode==('print'):
             asterisk = ' '
         if mode==('log'):
@@ -269,6 +285,8 @@ def run_train():
     i    = 0
 
     start_timer = timer()
+    merge_best_metric = [0, 0]
+    valid_best_metric = [0, 0]
     while  iter<num_iters:
         train_predict_list = []
         train_truth_list = []
