@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_af_7s import *
+from dataset_af_5s_af_slide import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -120,7 +120,7 @@ def do_valid_merge(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 0
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_7s_merge-2cls_af'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_5s_merge-2cls_af-slide_2s'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00019740_model.pth'%(train_fold, valid_fold)
 
@@ -164,7 +164,7 @@ def run_train():
     )
 
     val_dataset = CinCDataset(
-        mode='valid',
+        mode='train',
         csv='train.csv',
         split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
         # split='test_a%d-687.npy' % (train_fold),
