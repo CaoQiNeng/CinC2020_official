@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_af_5s_af_slide import *
+from dataset_af_5s_af_slide_2s import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
