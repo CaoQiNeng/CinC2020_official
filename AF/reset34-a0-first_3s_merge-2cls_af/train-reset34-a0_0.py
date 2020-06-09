@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_af_10s import *
+from dataset_af_3s import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -112,15 +112,15 @@ def do_valid_merge(net, valid_loader, out_dir=None):
 
 
 
-    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth_merge, valid_predict_merge>0.6, 2, valid_truth_merge.shape[1], check_errors=True)
-    valid_precision, valid_recall = metric(valid_truth_merge, (valid_predict_merge>0.6).astype(int))
+    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth_merge, valid_predict_merge>0.5, 2, valid_truth_merge.shape[1], check_errors=True)
+    valid_precision, valid_recall = metric(valid_truth_merge, (valid_predict_merge>0.5).astype(int))
 
     return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
 
 def run_train():
     train_fold = 0
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_4s_merge-2cls_af'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_3s_merge-2cls_af'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00019740_model.pth'%(train_fold, valid_fold)
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_af/checkpoint/00009600_model.pth' % (
