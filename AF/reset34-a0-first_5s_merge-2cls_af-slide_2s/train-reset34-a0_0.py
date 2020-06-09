@@ -311,7 +311,7 @@ def run_train():
                                   train_mode='merge'))
                 log.write('\n')
 
-            #if 0:
+            # if 0:
             if iter in iter_save:
                 torch.save({
                     #'optimizer': optimizer.state_dict(),
