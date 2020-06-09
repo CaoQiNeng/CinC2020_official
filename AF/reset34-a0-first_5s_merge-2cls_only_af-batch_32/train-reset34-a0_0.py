@@ -242,12 +242,13 @@ def run_train():
             precision_recall.append(p)
             precision_recall.append(r)
 
-        if precision_recall[0] + precision_recall[1] > best_metric[0] + best_metric[1] :
-            best_metric[0] = precision_recall[0]
-            best_metric[1] = precision_recall[1]
+        if train_mode == 'merge':
+            if precision_recall[0] + precision_recall[1] > best_metric[0] + best_metric[1] :
+                best_metric[0] = precision_recall[0]
+                best_metric[1] = precision_recall[1]
 
-        precision_recall[2] = best_metric[0]
-        precision_recall[3] = best_metric[1]
+            precision_recall[2] = best_metric[0]
+            precision_recall[3] = best_metric[1]
 
         if mode==('print'):
             asterisk = ' '
