@@ -173,6 +173,14 @@ def run_train():
             precision_recall.append(p)
             precision_recall.append(r)
 
+        if train_mode == 'valid':
+            if precision_recall[0] + precision_recall[1] > valid_best_metric[0] + valid_best_metric[1] :
+                valid_best_metric[0] = precision_recall[0]
+                valid_best_metric[1] = precision_recall[1]
+
+            precision_recall[2] = valid_best_metric[0]
+            precision_recall[3] = valid_best_metric[1]
+
         if mode==('print'):
             asterisk = ' '
         if mode==('log'):
@@ -200,6 +208,7 @@ def run_train():
     i    = 0
 
     start_timer = timer()
+    valid_best_metric = [0, 0]
     while  iter<num_iters:
         train_predict_list = []
         train_truth_list = []
