@@ -15,11 +15,16 @@ class CinCDataset(Dataset):
             else:
                 block_num = int(ecg_len / block_len) + 1
 
-            for i in range(block_num):
-                if i == block_num - 1 :
-                    ecg_5s.append(ecg[:, -block_len : ])
-                else:
-                    ecg_5s.append(ecg[:, i * block_len : (i + 1) * block_len])
+            if block_num == 1:
+                temp_ecg = np.zeros((12, block_len), dtype=np.float32)
+                temp_ecg[:, -ecg_len:] = ecg[:, -block_len:]
+                ecg_5s.append(temp_ecg)
+            else:
+                for i in range(block_num):
+                    if i == block_num - 1:
+                        ecg_5s.append(ecg[:, -block_len:])
+                    else:
+                        ecg_5s.append(ecg[:, i * block_len: (i + 1) * block_len])
 
 
             ecg_5s = np.stack(ecg_5s)
