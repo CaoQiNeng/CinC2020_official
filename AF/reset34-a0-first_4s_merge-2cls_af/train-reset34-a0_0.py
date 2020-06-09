@@ -112,8 +112,8 @@ def do_valid_merge(net, valid_loader, out_dir=None):
 
 
 
-    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth_merge, valid_predict_merge>0.6, 2, valid_truth_merge.shape[1], check_errors=True)
-    valid_precision, valid_recall = metric(valid_truth_merge, (valid_predict_merge>0.6).astype(int))
+    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth_merge, valid_predict_merge>0.5, 2, valid_truth_merge.shape[1], check_errors=True)
+    valid_precision, valid_recall = metric(valid_truth_merge, (valid_predict_merge>0.5).astype(int))
 
     return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
 

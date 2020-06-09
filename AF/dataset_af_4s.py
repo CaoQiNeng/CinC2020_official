@@ -114,7 +114,7 @@ class CinCDataset(Dataset):
         if not math.isnan(Third_label):
             label[int(Third_label)] = 1
 
-        label[1:] = 0
+        # label[1:] = 0
 
         ecg = self.ecg_5s[index]
         ecg = np.array(ecg / 1000, dtype=np.float32)
