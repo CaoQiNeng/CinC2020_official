@@ -12,7 +12,7 @@ from sklearn.metrics import recall_score
 def do_valid(net, valid_loader, out_dir=None):
     def out_result(valid_loader, valid_predict):
         probability = valid_predict
-        predict = int(valid_predict > 0.5)
+        predict = np.array(valid_predict > 0.5, dtype=np.int)
         ids = []
         truth_AF = []
         truth_I_AVB = []
@@ -44,7 +44,7 @@ def do_valid(net, valid_loader, out_dir=None):
         probability_STD = []
         probability_STE = []
 
-        for t, (input, truth, infor) in enumerate(valid_loader):
+        for t, (input, truth, infor) in enumerate(valid_loader.dataset):
             ids.append(infor.ecg_id)
             truth_AF.append(truth[0])
             truth_I_AVB.append(truth[1])
@@ -143,7 +143,7 @@ def run_train():
     valid_fold = 0
     out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-10s-2cls_af'%(train_fold, valid_fold)
     initial_checkpoint = None
-    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-10s-2cls_af-metric_max/checkpoint/00016600_model.pth'%(train_fold, valid_fold)
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-10s-2cls_af/checkpoint/00016600_model.pth'%(train_fold, valid_fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
