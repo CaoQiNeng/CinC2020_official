@@ -59,4 +59,25 @@ def seg_data_to_5s():
             if j == block_num - 1:
                 sio.savemat(save_path_5s + '/valid_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, -block_len:]})
             else:
-                sio.savemat(save_path_5s + '/valid_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, i * block_len: (i + 1
+                sio.savemat(save_path_5s + '/valid_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, i * block_len: (i + 1) * block_len]})
+
+def seg_data_to_10s():
+    train_data_ids = np.load('/home1/cqn/data_root/CinC2020/split_v2/train-a0_0-5571.npy')
+    os.makedirs(save_path_10s + '/train_data')
+    for i, t in enumerate(train_data_ids):
+        data = sio.loadmat(DATA_DIR + '/' + t)['val']
+        data_len = data.shape[1]
+        block_len = 10 * 500
+        if data_len % block_len == 0:
+            block_num = int(data_len / block_len)
+        else:
+            block_num = int(data_len / block_len) + 1
+
+        for j in range(block_num):
+            if j == block_num - 1:
+                sio.savemat(save_path_5s + '/train_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, -block_len:]})
+            else:
+                sio.savemat(save_path_5s + '/train_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, i * block_len: (i + 1) * block_len]})
+
+
+seg_data_to_10s()
