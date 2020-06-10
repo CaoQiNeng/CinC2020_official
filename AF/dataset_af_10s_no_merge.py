@@ -9,6 +9,7 @@ class CinCDataset(Dataset):
         self.split   = split
         self.csv     = csv
         self.mode    = mode
+        self.data_path = data_path
 
         self.data_list = np.array(os.listdir(data_path))
         self.data_list = np.char.replace(self.data_list, '.mat', '')
@@ -58,7 +59,7 @@ class CinCDataset(Dataset):
         if not math.isnan(Third_label):
             label[Third_label] = 1
 
-        ecg = sio.loadmat(DATA_DIR + '/data_argument/10s/train_data/%s.mat'%ecg_id)['ecgraw']
+        ecg = sio.loadmat(self.data_path + '/%s.mat'%ecg_id)['ecgraw']
         ecg = np.array(ecg / 1000, dtype=np.float32)
 
         infor = Struct(
@@ -170,6 +171,38 @@ def null_collate(batch):
 
     return input, label, infor
 
+def run_check_Dataset():
+    batch_size = 72
+    train_dataset = CinCDataset(
+        mode='train',
+        csv='train.csv',
+        split='valid_a%d_687.npy' % 0,
+        data_path = DATA_DIR + '/data_argument/10s/train_data'
+    )
+
+    val_dataset = CinCDataset(
+        mode='train',
+        csv='train.csv',
+        split='valid_a%d_687.npy' % 0,
+        data_path=DATA_DIR + '/data_argument/10s/valid_data'
+    )
+
+    label_save_path = 'F:/data_root/CinC2020/check_label'
+    ecg_save_path = 'F:/data_root/CinC2020/check_ecg'
+
+    a = 0
+    for t, (input, truth, infor) in enumerate(train_dataset):
+        if input.shape[1] != 5000:
+            print(infor.ecg_id)
+            print(input.shape[1])
+            # print(truth)
+            exit()
+
+        # if t ==  10 :
+        #     break
+    print(len(train_dataset))
+    print(a)
+
 def run_check_DataLoader():
     batch_size = 72
     train_dataset = CinCDataset(
@@ -179,11 +212,29 @@ def run_check_DataLoader():
         data_path = DATA_DIR + '/data_argument/10s/train_data'
     )
 
+    val_dataset = CinCDataset(
+        mode='train',
+        csv='train.csv',
+        split='valid_a%d_687.npy' % 0,
+        data_path=DATA_DIR + '/data_argument/10s/valid_data'
+    )
+
+    train_loader = DataLoader(
+        train_dataset,
+        # sampler     = RandomSampler(train_dataset),
+        shuffle=True,
+        batch_size=batch_size,
+        drop_last=False,
+        num_workers=20,
+        pin_memory=True,
+        collate_fn=null_collate
+    )
+
     label_save_path = 'F:/data_root/CinC2020/check_label'
     ecg_save_path = 'F:/data_root/CinC2020/check_ecg'
 
     a = 0
-    for t, (input, truth, infor) in enumerate(train_dataset):
+    for t, (input, truth, infor) in enumerate(train_loader):
         print(infor.ecg_id)
         print(truth)
 
@@ -195,6 +246,7 @@ def run_check_DataLoader():
 
 # main #################################################################
 if __name__ == '__main__':
-    run_check_DataLoader()
+    # run_check_DataLoader()
+    run_check_Dataset()
 
     print('\nsucess!')
