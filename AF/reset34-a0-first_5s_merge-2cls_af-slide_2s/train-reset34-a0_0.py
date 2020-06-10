@@ -122,7 +122,7 @@ def run_train():
     valid_fold = 0
     out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_5s_merge-2cls_af-slide_2s'%(train_fold, valid_fold)
     initial_checkpoint = None
-    # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00019740_model.pth'%(train_fold, valid_fold)
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_5s_merge-2cls_af-slide_2s/checkpoint/00008800_model.pth'%(train_fold, valid_fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
@@ -166,8 +166,8 @@ def run_train():
     val_dataset = CinCDataset(
         mode='valid',
         csv='train.csv',
-        split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
-        # split='test_a%d-687.npy' % (train_fold),
+        # split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
+        split='test-a%d_%d-687.npy' % (train_fold, valid_fold),
     )
     valid_loader = DataLoader(
         val_dataset,
@@ -311,8 +311,8 @@ def run_train():
                                   train_mode='merge'))
                 log.write('\n')
 
-            # if 0:
-            if iter in iter_save:
+            if 0:
+            # if iter in iter_save:
                 torch.save({
                     #'optimizer': optimizer.state_dict(),
                     'iter'     : iter,
