@@ -77,6 +77,12 @@ def seg_data_to_10s():
         else:
             block_num = int(data_len / block_len)
 
+        if data_len < block_len:
+            temp_ecg = np.zeros((12, block_len), dtype=np.float32)
+            temp_ecg[:, -data_len:] = data[:, -block_len:]
+            sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, 0), {'ecgraw': temp_ecg})
+            continue
+
         for j in range(block_num):
             if j == block_num - 1:
                 sio.savemat(save_path_10s + '/train_data/%s_%02d.mat'%(t, j),{'ecgraw':data[:, -block_len:]})
@@ -91,6 +97,12 @@ def seg_data_to_10s():
             block_num = int(data_len / block_len) + 1
         else:
             block_num = int(data_len / block_len)
+
+        if data_len < block_len:
+            temp_ecg = np.zeros((12, block_len), dtype=np.float32)
+            temp_ecg[:, -data_len:] = data[:, -block_len:]
+            sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, 0), {'ecgraw': temp_ecg})
+            continue
 
         for j in range(block_num):
             if j == block_num - 1:
@@ -107,6 +119,12 @@ def seg_data_to_10s():
             block_num = int(data_len / block_len) + 1
         else:
             block_num = int(data_len / block_len)
+
+        if data_len < block_len:
+            temp_ecg = np.zeros((12, block_len), dtype=np.float32)
+            temp_ecg[:, -data_len:] = data[:, -block_len:]
+            sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, 0), {'ecgraw': temp_ecg})
+            continue
 
         for j in range(block_num):
             if j == block_num - 1:
