@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_af_5s import *
+from dataset_af_10s_no_merge import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -51,9 +51,9 @@ def do_valid(net, valid_loader, out_dir=None):
     return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
 
 def run_train():
-    train_fold = 0
+    train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_af'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-10s-2cls_af'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00019740_model.pth'%(train_fold, valid_fold)
 
@@ -83,7 +83,8 @@ def run_train():
     train_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='train-a%d_%d-5571.npy' % (train_fold, valid_fold),
+        split='valid_a%d_687.npy' % 0,
+        data_path=DATA_DIR + '/data_argument/10s/train_data'
     )
     train_loader = DataLoader(
         train_dataset,
@@ -99,8 +100,8 @@ def run_train():
     val_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
-        # split='test_a%d-687.npy' % (train_fold),
+        split='valid_a%d_687.npy' % 0,
+        data_path=DATA_DIR + '/data_argument/10s/valid_data'
     )
     valid_loader = DataLoader(
         val_dataset,
