@@ -42,7 +42,7 @@ class BasicBlock(nn.Module):
 
 class Net(nn.Module):
 
-    def __init__(self, in_planes, num_classes=1000, kernel_size=64, dropout_rate = 0.5):
+    def __init__(self, in_planes, num_classes=1000, kernel_size=63, dropout_rate = 0.5):
         super(Net, self).__init__()
         self.dilation = 1
         self.in_planes = in_planes

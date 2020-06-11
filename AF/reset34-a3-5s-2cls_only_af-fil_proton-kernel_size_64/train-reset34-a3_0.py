@@ -148,7 +148,7 @@ def run_train():
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton/checkpoint/00013200_model.pth'%(train_fold, valid_fold)
 
-    schduler = NullScheduler(lr=0.01)
+    schduler = NullScheduler(lr=0.1)
     iter_accum = 1
     batch_size = 16 #8
 
@@ -192,7 +192,7 @@ def run_train():
         mode='train',
         csv='train.csv',
         split='valid_a%d_687.npy' % 0,
-        data_path=DATA_DIR + '/data_argument/5s_fil_proton_a3_0/test_data'
+        data_path=DATA_DIR + '/data_argument/5s_fil_proton_a3_0/valid_data'
     )
     valid_loader = DataLoader(
         val_dataset,
