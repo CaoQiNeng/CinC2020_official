@@ -47,7 +47,7 @@ for i, d in enumerate(data_list):
         temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
                                          signal_freq=500, filter_order=1)
 
-        sio.savemat(data_path + '_3fil/' + fn + '.mat',{'val':temp_ecg})
+    sio.savemat(data_path + '_3fil/' + fn + '.mat',{'val':temp_ecg})
 
 
 
