@@ -33,12 +33,13 @@ class CinCDataset(Dataset):
         af_index = np.where(self.First_label == class_map.index(class_map[0]))
         af_ids = self.Recording[af_index[0]]
 
-        data_list_copy = self.data_list.copy()
-        for i, d in enumerate(data_list_copy):
-            if d[:-3] in af_ids:
-                self.data_list = np.append(self.data_list, d)
-                self.data_list = np.append(self.data_list, d)
-                self.data_list = np.append(self.data_list, d)
+        if mode == 'train' :
+            data_list_copy = self.data_list.copy()
+            for i, d in enumerate(data_list_copy):
+                if d[:-3] in af_ids:
+                    self.data_list = np.append(self.data_list, d)
+                    self.data_list = np.append(self.data_list, d)
+                    self.data_list = np.append(self.data_list, d)
 
         self.num_image = len(self.data_list)
 

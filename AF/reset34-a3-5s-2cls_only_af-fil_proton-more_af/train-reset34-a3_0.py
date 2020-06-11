@@ -189,7 +189,7 @@ def run_train():
     )
 
     val_dataset = CinCDataset(
-        mode='train',
+        mode='valid',
         csv='train.csv',
         split='valid_a%d_687.npy' % 0,
         data_path=DATA_DIR + '/data_argument/5s_fil_proton_a3_0/test_data'
