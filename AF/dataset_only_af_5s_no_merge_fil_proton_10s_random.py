@@ -207,8 +207,6 @@ def run_check_Dataset():
 
         # if t ==  10 :
         #     break
-    print(len(train_dataset))
-    print(a)
 
 def run_check_DataLoader():
     batch_size = 72

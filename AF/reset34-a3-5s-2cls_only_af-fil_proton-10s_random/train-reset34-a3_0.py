@@ -10,10 +10,10 @@ from sklearn.metrics import recall_score
 ################################################################################################
 def train_argument(ecg):
     block_len = 5 * 500
-    random_len = len(ecg) - block_len
+    random_len = ecg.shape[1] - block_len
 
-    r = np.random.choice(0, random_len)
-    ecg = ecg[:,r:]
+    r = np.random.randint(0, random_len)
+    ecg = ecg[:,r:r + block_len]
 
     return ecg
 
