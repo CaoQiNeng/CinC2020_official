@@ -63,6 +63,7 @@ class CinCDataset(Dataset):
 
         ecg = sio.loadmat(self.data_path + '/%s.mat'%ecg_id)['ecgfil']
         ecg = np.array(ecg, dtype=np.float32)
+        ecg = np.nan_to_num(ecg)
 
         infor = Struct(
             index  = index,

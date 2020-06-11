@@ -144,11 +144,11 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton'%(train_fold, valid_fold)
     initial_checkpoint = None
-    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af/checkpoint/00022200_model.pth'%(train_fold, valid_fold)
+    # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton/checkpoint/00013200_model.pth'%(train_fold, valid_fold)
 
-    schduler = NullScheduler(lr=0.1)
+    schduler = NullScheduler(lr=0.01)
     iter_accum = 1
     batch_size = 16 #8
 
@@ -175,7 +175,7 @@ def run_train():
         mode='train',
         csv='train.csv',
         split='valid_a%d_687.npy' % 0,
-        data_path=DATA_DIR + '/data_argument/5s_a3_0/train_data'
+        data_path=DATA_DIR + '/data_argument/5s_fil_proton_a3_0/train_data'
     )
     train_loader = DataLoader(
         train_dataset,
@@ -192,7 +192,7 @@ def run_train():
         mode='train',
         csv='train.csv',
         split='valid_a%d_687.npy' % 0,
-        data_path=DATA_DIR + '/data_argument/5s_a3_0/valid_data'
+        data_path=DATA_DIR + '/data_argument/5s_fil_proton_a3_0/test_data'
     )
     valid_loader = DataLoader(
         val_dataset,
@@ -314,8 +314,6 @@ def run_train():
                 print(message(rate, iter, epoch, [train_accuracy, train_f_beta, train_g_beta, train_f_measure], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
                 log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
-
-            exit()
 
             #if 0:
             if iter in iter_save:

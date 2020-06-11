@@ -9,11 +9,11 @@ save_path_10s = save_path + '/10s_fil_proton_a3_0'
 os.makedirs(save_path_5s, exist_ok=True)
 
 def seg_data_to_5s():
-    train_data_ids = np.load('/home1/cqn/data_root/CinC2020/split_v2/train-a3_0-5571.npy')
+    train_data_ids = np.load(DATA_ROOT_PATH + '/CinC2020/split_v2/train-a3_0-5571.npy')
     os.makedirs(save_path_5s + '/train_data', exist_ok=True)
-    valid_data_ids = np.load('/home1/cqn/data_root/CinC2020/split_v2/valid-a3_0-619.npy')
+    valid_data_ids = np.load(DATA_ROOT_PATH + '/CinC2020/split_v2/valid-a3_0-619.npy')
     os.makedirs(save_path_5s + '/valid_data', exist_ok=True)
-    test_data_ids = np.load('/home1/cqn/data_root/CinC2020/split_v2/test-a3_0-687.npy')
+    test_data_ids = np.load(DATA_ROOT_PATH +  '/CinC2020/split_v2/test-a3_0-687.npy')
     os.makedirs(save_path_5s + '/test_data', exist_ok=True)
 
     for i, t in enumerate(train_data_ids):
