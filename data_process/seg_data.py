@@ -131,7 +131,7 @@ def seg_data_to_10s():
                 sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, j), {'ecgfil': data[:, -block_len:]})
             else:
                 sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, j),
-                            {'ecgraw': data[:, j * block_len: (j + 1) * block_len]})
+                            {'ecgfil': data[:, j * block_len: (j + 1) * block_len]})
 
 
 seg_data_to_5s()
