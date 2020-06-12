@@ -3,97 +3,13 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34 import *
-from dataset_only_af_5s_no_merge import *
+from dataset_af_5s import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
 ################################################################################################
 #------------------------------------
 def do_valid(net, valid_loader, out_dir=None):
-    def out_result(valid_loader, valid_predict):
-        probability = valid_predict
-        predict = np.array(valid_predict > 0.5, dtype=np.int)
-        ids = []
-        truth_AF = []
-        truth_I_AVB = []
-        truth_LBBB = []
-        truth_Normal = []
-        truth_RBBB = []
-        truth_PAC = []
-        truth_PVC = []
-        truth_STD = []
-        truth_STE = []
-
-        predict_AF = []
-        predict_I_AVB = []
-        predict_LBBB = []
-        predict_Normal = []
-        predict_RBBB = []
-        predict_PAC = []
-        predict_PVC = []
-        predict_STD = []
-        predict_STE = []
-
-        probability_AF = []
-        probability_I_AVB = []
-        probability_LBBB = []
-        probability_Normal = []
-        probability_RBBB = []
-        probability_PAC = []
-        probability_PVC = []
-        probability_STD = []
-        probability_STE = []
-
-        for t, (input, truth, infor) in enumerate(valid_loader.dataset):
-            ids.append(infor.ecg_id)
-            truth_AF.append(truth[0])
-            truth_I_AVB.append(truth[1])
-            truth_LBBB.append(truth[2])
-            truth_Normal.append(truth[3])
-            truth_RBBB.append(truth[4])
-            truth_PAC.append(truth[5])
-            truth_PVC.append(truth[6])
-            truth_STD.append(truth[7])
-            truth_STE.append(truth[8])
-
-            predict_AF.append(predict[t][0])
-            predict_I_AVB.append(predict[t][1])
-            predict_LBBB.append(predict[t][2])
-            predict_Normal.append(predict[t][3])
-            predict_RBBB.append(predict[t][4])
-            predict_PAC.append(predict[t][5])
-            predict_PVC.append(predict[t][6])
-            predict_STD.append(predict[t][7])
-            predict_STE.append(predict[t][8])
-
-            probability_AF.append(probability[t][0])
-            probability_I_AVB.append(probability[t][1])
-            probability_LBBB.append(probability[t][2])
-            probability_Normal.append(probability[t][3])
-            probability_RBBB.append(probability[t][4])
-            probability_PAC.append(probability[t][5])
-            probability_PVC.append(probability[t][6])
-            probability_STD.append(probability[t][7])
-            probability_STE.append(probability[t][8])
-
-        df = pd.DataFrame(zip(ids, truth_AF, truth_I_AVB, truth_LBBB, truth_Normal, truth_RBBB,
-                                   truth_PAC,truth_PVC,truth_STD,truth_STE,
-                                   predict_AF, predict_I_AVB, predict_LBBB, predict_Normal, predict_RBBB,
-                                   predict_PAC,predict_PVC,predict_STD,predict_STE,
-                                   probability_AF, probability_I_AVB, probability_LBBB, probability_Normal,
-                                   probability_RBBB, probability_PAC,probability_PVC,probability_STD,
-                                   probability_STE),
-                          columns=['ids',
-                                   'truth_AF', 'truth_I_AVB', 'truth_LBBB', 'truth_Normal',
-                                   'truth_PAC','truth_PVC', 'truth_RBBB', 'truth_STD','truth_STE',
-                                   'predict_AF', 'predict_I_AVB', 'predict_LBBB', 'predict_Normal',
-                                   'predict_PAC','predict_PVC', 'predict_RBBB','predict_STD','predict_STE',
-                                   'probability_AF', 'probability_I_AVB', 'probability_LBBB', 'probability_Normal',
-                                   'probability_PAC','probability_PVC', 'probability_RBBB', 'probability_STD',
-                                   'probability_STE'])
-
-        df.to_csv(out_dir + '/result.csv', index=False)
-
     valid_loss = 0
     valid_predict = []
     valid_truth = []
@@ -109,9 +25,6 @@ def do_valid(net, valid_loader, out_dir=None):
         with torch.no_grad():
             logit = data_parallel(net, input) #net(input)
             probability = torch.sigmoid(logit)
-
-            probability[:, 1:] = 0
-            truth[:, 1:] = 0
 
             loss = F.binary_cross_entropy(probability, truth)
 
@@ -132,21 +45,84 @@ def do_valid(net, valid_loader, out_dir=None):
 
     valid_truth = np.vstack(valid_truth)
     valid_predict = np.vstack(valid_predict)
-
-    if 1:
-        out_result(valid_loader, valid_predict)
-
     accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
     valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
+
+    return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
+
+def do_valid_merge(net, valid_loader, out_dir=None):
+    valid_loss = 0
+    ids = []
+    valid_predict = []
+    valid_truth = []
+    valid_num = 0
+
+    for t, (input, truth, infor) in enumerate(valid_loader):
+        batch_size = len(infor)
+
+        net.eval()
+        input  = input.cuda()
+        truth  = truth.cuda()
+
+        with torch.no_grad():
+            logit = data_parallel(net, input) #net(input)
+            probability = torch.sigmoid(logit)
+
+            loss = F.binary_cross_entropy(probability, truth)
+
+        for i in range(len(infor)):
+            ids.append(infor[i].ecg_id)
+
+        valid_predict.append(probability.cpu().numpy())
+        valid_truth.append(truth.cpu().numpy().astype(int))
+
+        #---
+        valid_loss += loss.cpu().numpy() * batch_size
+
+        valid_num  += batch_size
+
+        print('\r %8d / %d'%(valid_num, len(valid_loader.dataset)),end='',flush=True)
+
+        pass  #-- end of one data loader --
+
+    assert(valid_num == len(valid_loader.dataset))
+    valid_loss = valid_loss / (valid_num+1e-8)
+
+    ids = np.hstack(ids)
+    valid_truth = np.vstack(valid_truth)
+    valid_predict = np.vstack(valid_predict)
+
+    predict_merge_dict = {}
+    truth_merge_dict = {}
+    for i, id in enumerate(ids):
+        predict_merge_dict.setdefault(id.split('_')[0], []).append(valid_predict[i])
+        truth_merge_dict.setdefault(id.split('_')[0], []).append(valid_truth[i])
+
+    valid_truth_merge = []
+    valid_predict_merge = []
+    for k in predict_merge_dict:
+        t = np.mean(truth_merge_dict[k], axis=0)
+        valid_truth_merge.append(t)
+
+        p = np.mean(predict_merge_dict[k], axis=0)
+        valid_predict_merge.append(p)
+
+    valid_truth_merge = np.vstack(valid_truth_merge)
+    valid_predict_merge = np.vstack(valid_predict_merge)
+
+
+
+    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth_merge, valid_predict_merge>0.5, 2, valid_truth_merge.shape[1], check_errors=True)
+    valid_precision, valid_recall = metric(valid_truth_merge, (valid_predict_merge>0.5).astype(int))
 
     return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
 
 def run_train():
     train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-0.01'%(train_fold, valid_fold)
-    initial_checkpoint = None
-    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af/checkpoint/00015000_model.pth'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_5s_merge-2cls_af'%(train_fold, valid_fold)
+    # initial_checkpoint = None
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-first_5s_merge-2cls_af/checkpoint/00008000_model.pth'%(train_fold, valid_fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
@@ -174,8 +150,7 @@ def run_train():
     train_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='valid_a%d_687.npy' % 0,
-        data_path=DATA_DIR + '/data_argument/5s_a3_0/train_data'
+        split='train-a%d_%d-5571.npy' % (train_fold, valid_fold),
     )
     train_loader = DataLoader(
         train_dataset,
@@ -191,8 +166,8 @@ def run_train():
     val_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='valid_a%d_687.npy' % 0,
-        data_path=DATA_DIR + '/data_argument/5s_a3_0/test_data'
+        # split='valid-a%d_%d-619.npy' % (train_fold, valid_fold),
+        split='test-a%d_%d-687.npy' % (train_fold, valid_fold),
     )
     valid_loader = DataLoader(
         val_dataset,
@@ -265,6 +240,22 @@ def run_train():
             precision_recall.append(p)
             precision_recall.append(r)
 
+        if train_mode == 'merge':
+            if precision_recall[0] + precision_recall[1] > merge_best_metric[0] + merge_best_metric[1] :
+                merge_best_metric[0] = precision_recall[0]
+                merge_best_metric[1] = precision_recall[1]
+
+            precision_recall[2] = merge_best_metric[0]
+            precision_recall[3] = merge_best_metric[1]
+
+        if train_mode == 'valid':
+            if precision_recall[0] + precision_recall[1] > valid_best_metric[0] + valid_best_metric[1] :
+                valid_best_metric[0] = precision_recall[0]
+                valid_best_metric[1] = precision_recall[1]
+
+            precision_recall[2] = valid_best_metric[0]
+            precision_recall[3] = valid_best_metric[1]
+
         if mode==('print'):
             asterisk = ' '
         if mode==('log'):
@@ -292,6 +283,8 @@ def run_train():
     i    = 0
 
     start_timer = timer()
+    merge_best_metric = [0, 0]
+    valid_best_metric = [0, 0]
     while  iter<num_iters:
         train_predict_list = []
         train_truth_list = []
@@ -307,18 +300,19 @@ def run_train():
             #if 0:
             if (iter % iter_valid==0):
                 CinC, valid_loss, valid_precision, valid_recall = do_valid(net, valid_loader, out_dir) #
+                CinC_merge, valid_loss_merge, valid_precision_merge, valid_recall_merge = do_valid_merge(net, valid_loader, out_dir)  #
                 pass
 
             if (iter % iter_log==0):
                 print('\r',end='',flush=True)
                 print(message(rate, iter, epoch, [train_accuracy, train_f_beta, train_g_beta, train_f_measure], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
-                log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
+                print(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
+                log.write(message(rate, iter, epoch, CinC_merge, valid_loss_merge, valid_precision_merge, valid_recall_merge, mode='log',
+                                  train_mode='merge'))
                 log.write('\n')
 
-            exit()
-
-            #if 0:
-            if iter in iter_save:
+            if 0:
+            # if iter in iter_save:
                 torch.save({
                     #'optimizer': optimizer.state_dict(),
                     'iter'     : iter,

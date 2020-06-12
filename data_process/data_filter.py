@@ -29,7 +29,7 @@ def bandpass_filter(data, lowcut, highcut, signal_freq, filter_order):
 
 data_path = DATA_ROOT_PATH + '/CinC2020/Training_WFDB'
 data_list = glob.glob(DATA_ROOT_PATH + '/CinC2020/Training_WFDB/*.mat')
-os.makedirs(data_path + '_3fil', exist_ok=True)
+os.makedirs(data_path + '_6fil', exist_ok=True)
 
 for i, d in enumerate(data_list):
     fn = (os.path.split(d)[-1]).split('.')[0]
@@ -47,7 +47,16 @@ for i, d in enumerate(data_list):
         temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
                                          signal_freq=500, filter_order=1)
 
-        sio.savemat(data_path + '_3fil/' + fn + '.mat',{'val':temp_ecg})
+        temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
+                                         signal_freq=500, filter_order=1)
+
+        temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
+                                         signal_freq=500, filter_order=1)
+
+        temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
+                                         signal_freq=500, filter_order=1)
+
+        sio.savemat(data_path + '_6fil/' + fn + '.mat',{'val':temp_ecg})
 
 
 
