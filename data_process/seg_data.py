@@ -1,11 +1,11 @@
 from include import *
 import scipy.io as sio
 
-DATA_DIR = DATA_ROOT_PATH + '/CinC2020/Training_WFDB_6fil'
+DATA_DIR = DATA_ROOT_PATH + '/CinC2020/Training_WFDB_3fil'
 save_path = DATA_ROOT_PATH + '/CinC2020/data_argument'
 os.makedirs(save_path, exist_ok=True)
-save_path_5s = save_path + '/5s_6fil_a3_0'
-save_path_10s = save_path + '/10s_6fil_a3_0'
+save_path_5s = save_path + '/5s_3fil_a3_0'
+save_path_10s = save_path + '/10s_3fil_a3_0'
 os.makedirs(save_path_5s, exist_ok=True)
 
 def seg_data_to_5s():

@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34_ks25 import *
-from dataset_only_af_5s_no_merge_fil_proton_rm_outlier import *
+from dataset_only_af_5s_no_merge_fil_proton_rm_outlier_std import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -304,8 +304,8 @@ def run_train():
             iter  = i + start_iter
             epoch = (iter-start_iter)*batch_size/len(train_dataset) + start_epoch
 
-            #if 0:
-            if (iter % iter_valid==0):
+            if 0:
+            # if (iter % iter_valid==0):
                 CinC, valid_loss, valid_precision, valid_recall = do_valid(net, valid_loader, out_dir) #
                 pass
 
