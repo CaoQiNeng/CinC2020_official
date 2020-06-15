@@ -103,6 +103,7 @@ def do_valid(net, valid_loader, out_dir=None):
         batch_size = len(infor)
 
         net.eval()
+        input = input.unsqueeze(3)
         input  = input.cuda()
         truth  = truth.cuda()
 
@@ -144,7 +145,7 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-3fil'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/v2_result-image-reset34-a%d_%d-5s-2cls_only_af-3fil'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton/checkpoint/00013200_model.pth'%(train_fold, valid_fold)
 
@@ -335,6 +336,7 @@ def run_train():
             # one iteration update  -------------
             #net.set_mode('train',is_freeze_bn=True)
             net.train()
+            input = input.unsqueeze(3)
             input = input.cuda()
             truth = truth.cuda()
 
