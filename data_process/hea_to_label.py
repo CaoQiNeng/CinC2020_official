@@ -1,8 +1,9 @@
 import os
 import pandas as pd
+from include import *
 
-target = 'PhysioNetChallenge2020_Training_2'
-root_path = '/home1/cqn/data_root/CinC2020_V1'
+target = 'PhysioNetChallenge2020_Training_PTB'
+root_path = DATA_ROOT_PATH + '/CinC2020_V1'
 st_df = pd.read_csv(root_path + '/SNOMED-CT.csv')
 st_df = st_df.set_index('SNOMED_code')
 
@@ -19,10 +20,12 @@ Eighth_label = []
 Ninth_label = []
 Tenth_label = []
 Eleventh_label = []
+data_len = []
 len_l = 0
 for f in os.listdir(hea_path):
     if f.lower().endswith('hea'):
         file = open(hea_path + "/" + f)
+        print(f)
         for line in file:
             if line.startswith("#Dx:"):
                 Recording.append(f.replace(".hea",""))
@@ -57,42 +60,36 @@ for f in os.listdir(hea_path):
 
                 if len(labels) > 5:
                     l = st_df.loc[int(labels[5])]['Abbreviation']
-                    Fifth_label.append(l)
-                else:
-                    Fifth_label.append('')
-
-                if len(labels) > 6:
-                    l = st_df.loc[int(labels[6])]['Abbreviation']
                     Sixth_label.append(l)
                 else:
                     Sixth_label.append('')
 
-                if len(labels) > 7:
-                    l = st_df.loc[int(labels[7])]['Abbreviation']
+                if len(labels) > 6:
+                    l = st_df.loc[int(labels[6])]['Abbreviation']
                     Seventh_label.append(l)
                 else:
                     Seventh_label.append('')
 
-                if len(labels) > 8:
-                    l = st_df.loc[int(labels[8])]['Abbreviation']
+                if len(labels) > 7:
+                    l = st_df.loc[int(labels[7])]['Abbreviation']
                     Eighth_label.append(l)
                 else:
                     Eighth_label.append('')
 
-                if len(labels) > 9:
-                    l = st_df.loc[int(labels[9])]['Abbreviation']
+                if len(labels) > 8:
+                    l = st_df.loc[int(labels[8])]['Abbreviation']
                     Ninth_label.append(l)
                 else:
                     Ninth_label.append('')
 
-                if len(labels) > 10:
-                    l = st_df.loc[int(labels[10])]['Abbreviation']
+                if len(labels) > 9:
+                    l = st_df.loc[int(labels[9])]['Abbreviation']
                     Tenth_label.append(l)
                 else:
                     Tenth_label.append('')
 
-                if len(labels) > 11:
-                    l = st_df.loc[int(labels[11])]['Abbreviation']
+                if len(labels) > 10:
+                    l = st_df.loc[int(labels[10])]['Abbreviation']
                     Eleventh_label.append(l)
                 else:
                     Eleventh_label.append('')
@@ -100,10 +97,16 @@ for f in os.listdir(hea_path):
                 if len(labels) > len_l :
                     len_l = len(labels)
 
+        data = sio.loadmat(root_path + '/' + target + '/'  + "/" + f.replace('hea', 'mat'))['val']
+        data_len.append(data.shape[1])
+
+
 df = pd.DataFrame(zip(Recording, First_label, Second_label, Third_label, Fourth_label, Fifth_label, Sixth_label,
-                      Seventh_label, Eighth_label, Ninth_label, Tenth_label, Eleventh_label),
+                      Seventh_label, Eighth_label, Ninth_label, Tenth_label, Eleventh_label, data_len),
                   columns=['Recording', 'First_label', 'Second_label', 'Third_label', 'Fourth_label',
-                           'Fifth_label', 'Sixth_label', 'Seventh_label', 'Eighth_label', 'Ninth_label', 'Tenth_label', 'Eleventh_label'])
+                           'Fifth_label', 'Sixth_label', 'Seventh_label', 'Eighth_label', 'Ninth_label', 'Tenth_label', 'Eleventh_label', 'data_len'])
+
+df = df.sort_values(by = 'Recording')
 df.to_csv(root_path + '/' + target + '_label.csv', index=False)
 
 print(len_l)
