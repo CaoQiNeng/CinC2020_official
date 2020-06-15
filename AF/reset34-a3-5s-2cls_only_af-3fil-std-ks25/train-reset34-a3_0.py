@@ -304,8 +304,8 @@ def run_train():
             iter  = i + start_iter
             epoch = (iter-start_iter)*batch_size/len(train_dataset) + start_epoch
 
-            if 0:
-            # if (iter % iter_valid==0):
+            # if 0:
+            if (iter % iter_valid==0):
                 CinC, valid_loss, valid_precision, valid_recall = do_valid(net, valid_loader, out_dir) #
                 pass
 
@@ -315,8 +315,8 @@ def run_train():
                 log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
 
-            #if 0:
-            if iter in iter_save:
+            if 0:
+            # if iter in iter_save:
                 torch.save({
                     #'optimizer': optimizer.state_dict(),
                     'iter'     : iter,
