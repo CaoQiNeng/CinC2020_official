@@ -79,7 +79,7 @@ class CinCDataset(Dataset):
         ecg = sio.loadmat(self.data_path + '/%s.mat'%ecg_id)['ecgfil']
         ecg = np.array(ecg, dtype=np.float32)
         ecg = np.nan_to_num(ecg)
-        ecg = remove_outlier(ecg)
+        # ecg = remove_outlier(ecg)
 
         for i in range(ecg.shape[0]):
             ecg[i] = ecg[i] - np.mean(ecg[i])

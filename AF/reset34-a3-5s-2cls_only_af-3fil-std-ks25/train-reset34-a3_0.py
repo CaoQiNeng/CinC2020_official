@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model_resnet34_ks25 import *
-from dataset_only_af_5s_no_merge_fil_proton_rm_outlier_std import *
+from dataset_only_af_5s_no_merge_fil_proton_std import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
 
@@ -144,7 +144,7 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-3fil-rm_outlier-std-ks25'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-3fil-std-ks25'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-3fil-ks25/checkpoint/00012600_model.pth'%(train_fold, valid_fold)
 
