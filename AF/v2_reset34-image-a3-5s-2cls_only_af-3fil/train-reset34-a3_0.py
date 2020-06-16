@@ -2,7 +2,7 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
-from v2_model_resnet34_image import *
+from v2_model_resnet34_image_ks25 import *
 from dataset_only_af_5s_no_merge_fil_proton import *
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import recall_score
@@ -146,10 +146,10 @@ def run_train():
     train_fold = 3
     valid_fold = 0
     out_dir = ROOT_PATH + '/CinC2020_official_logs/v2_result-image-reset34-a%d_%d-5s-2cls_only_af-3fil'%(train_fold, valid_fold)
-    initial_checkpoint = None
-    # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton/checkpoint/00013200_model.pth'%(train_fold, valid_fold)
+    # initial_checkpoint = None
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/v2_result-image-reset34-a%d_%d-5s-2cls_only_af-3fil/checkpoint/00004000_model.pth'%(train_fold, valid_fold)
 
-    schduler = NullScheduler(lr=0.1)
+    schduler = NullScheduler(lr=0.01)
     iter_accum = 1
     batch_size = 16 #8
 
