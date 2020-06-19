@@ -42,8 +42,8 @@ class CinCDataset(Dataset):
                     self.data_list = np.append(self.data_list, d)
 
 
-        print(self.data_list[-20:])
-        exit()
+        # print(self.data_list[-20:])
+        # exit()
 
         self.num_image = len(self.data_list)
 
