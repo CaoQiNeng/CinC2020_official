@@ -41,6 +41,10 @@ class CinCDataset(Dataset):
                     self.data_list = np.append(self.data_list, d)
                     self.data_list = np.append(self.data_list, d)
 
+
+        print(self.data_list[-20:])
+        exit()
+
         self.num_image = len(self.data_list)
 
     def __str__(self):
@@ -205,7 +209,7 @@ def run_check_Dataset():
     ecg_save_path = 'F:/data_root/CinC2020/check_ecg'
 
     a = 0
-    for t, (input, truth, infor) in enumerate(val_dataset):
+    for t, (input, truth, infor) in enumerate(train_dataset):
         if input.shape[1] != 5000:
             print(infor.ecg_id)
             print(input.shape[1])
