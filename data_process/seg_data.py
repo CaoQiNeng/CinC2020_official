@@ -154,14 +154,14 @@ def seg_data_to_30s():
         if data_len < block_len:
             temp_ecg = np.zeros((12, block_len), dtype=np.float32)
             temp_ecg[:, -data_len:] = data[:, -block_len:]
-            sio.savemat(save_path_10s + '/train_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
+            sio.savemat(save_path_30s + '/train_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
             continue
 
         for j in range(block_num):
             if j == block_num - 1:
-                sio.savemat(save_path_10s + '/train_data/%s_%02d.mat'%(t, j),{'ecgfil':data[:, -block_len:]})
+                sio.savemat(save_path_30s + '/train_data/%s_%02d.mat'%(t, j),{'ecgfil':data[:, -block_len:]})
             else:
-                sio.savemat(save_path_10s + '/train_data/%s_%02d.mat'%(t, j),{'ecgfil':data[:, j * block_len: (j + 1) * block_len]})
+                sio.savemat(save_path_30s + '/train_data/%s_%02d.mat'%(t, j),{'ecgfil':data[:, j * block_len: (j + 1) * block_len]})
 
     for i, t in enumerate(valid_data_ids):
         data = sio.loadmat(DATA_DIR + '/' + t)['val']
@@ -174,14 +174,14 @@ def seg_data_to_30s():
         if data_len < block_len:
             temp_ecg = np.zeros((12, block_len), dtype=np.float32)
             temp_ecg[:, -data_len:] = data[:, -block_len:]
-            sio.savemat(save_path_10s + '/valid_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
+            sio.savemat(save_path_30s + '/valid_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
             continue
 
         for j in range(block_num):
             if j == block_num - 1:
-                sio.savemat(save_path_10s + '/valid_data/%s_%02d.mat' % (t, j), {'ecgfil': data[:, -block_len:]})
+                sio.savemat(save_path_30s + '/valid_data/%s_%02d.mat' % (t, j), {'ecgfil': data[:, -block_len:]})
             else:
-                sio.savemat(save_path_10s + '/valid_data/%s_%02d.mat' % (t, j),
+                sio.savemat(save_path_30s + '/valid_data/%s_%02d.mat' % (t, j),
                             {'ecgraw': data[:, j * block_len: (j + 1) * block_len]})
 
     for i, t in enumerate(test_data_ids):
@@ -195,15 +195,15 @@ def seg_data_to_30s():
         if data_len < block_len:
             temp_ecg = np.zeros((12, block_len), dtype=np.float32)
             temp_ecg[:, -data_len:] = data[:, -block_len:]
-            sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
+            sio.savemat(save_path_30s + '/test_data/%s_%02d.mat' % (t, 0), {'ecgfil': temp_ecg})
             continue
 
         for j in range(block_num):
             if j == block_num - 1:
-                sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, j), {'ecgfil': data[:, -block_len:]})
+                sio.savemat(save_path_30s + '/test_data/%s_%02d.mat' % (t, j), {'ecgfil': data[:, -block_len:]})
             else:
-                sio.savemat(save_path_10s + '/test_data/%s_%02d.mat' % (t, j),
+                sio.savemat(save_path_30s + '/test_data/%s_%02d.mat' % (t, j),
                             {'ecgfil': data[:, j * block_len: (j + 1) * block_len]})
 
 
-seg_data_to_5s()
+seg_data_to_30s()
