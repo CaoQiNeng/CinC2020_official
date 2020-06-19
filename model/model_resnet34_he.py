@@ -136,7 +136,7 @@ class ResNet(nn.Module):
                              "or a 3-element tuple, got {}".format(replace_stride_with_dilation))
         self.groups = groups
         self.base_width = width_per_group
-        self.conv1 = nn.Conv2d(12, self.inplanes, kernel_size=(17,1), stride=1, padding=(8,0),
+        self.conv1 = nn.Conv2d(12, self.inplanes, kernel_size=(17,1), stride=2, padding=(8,0),
                                bias=False)
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
