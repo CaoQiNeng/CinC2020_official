@@ -235,11 +235,11 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     train_fold = 3
     valid_fold = 0
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-reset34_he-a%d_%d-5s-2cls_only_af-3fil'%(train_fold, valid_fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet18_he-a%d_%d-5s-2cls_only_af-3fil'%(train_fold, valid_fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-reset34-a%d_%d-5s-2cls_only_af-fil_proton/checkpoint/00013200_model.pth'%(train_fold, valid_fold)
 
-    schduler = NullScheduler(lr=0.1)
+    schduler = NullScheduler(lr=0.01)
     iter_accum = 1
     batch_size = 16 #8
 
@@ -302,7 +302,7 @@ def run_train():
 
     ## net ----------------------------------------
     log.write('** net setting **\n')
-    net = resnet34().cuda()
+    net = resnet18().cuda()
     log.write('\tinitial_checkpoint = %s\n' % initial_checkpoint)
 
     if initial_checkpoint is not None:
@@ -315,7 +315,7 @@ def run_train():
     log.write('net=%s\n'%(type(net)))
     log.write('\n')
 
-    #optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, net.parameters()),lr=schduler(0))
+    # optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, net.parameters()),lr=schduler(0))
     #optimizer = torch.optim.RMSprop(net.parameters(), lr =0.0005, alpha = 0.95)
     optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, net.parameters()), lr=schduler(0), momentum=0.0, weight_decay=0.0)
 
