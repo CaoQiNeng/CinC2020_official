@@ -17,3 +17,5 @@ def run_make_train_5F():
         print(set(train).intersection(valid))
         np.save(DATA_ROOT_PATH + '/CinC2020_V1/split_5F_v0/train_a%d_%d.npy' % (n, len(train)), train)
         np.save(DATA_ROOT_PATH + '/CinC2020_V1/split_5F_v0/valid_a%d_%d.npy' % (n, len(valid)), valid)
+
+run_make_train_5F()
