@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model.model_resnet34_he import *
-from dataset_full_size import *
+from dataset_60s import *
 
 def compute_beta_score(labels, output, beta, num_classes, check_errors=True):
     # Check inputs for errors.
@@ -149,7 +149,7 @@ def do_valid(net, valid_loader, out_dir=None):
 def run_train():
     fold = 0
     global out_dir
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d_%d-60s-9cls'%(fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-9cls'%(fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00021800_model.pth'%(train_fold, valid_fold)
 
@@ -179,7 +179,7 @@ def run_train():
     train_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='train-a%d-38725.npy' % (fold),
+        split='train_a%d_38725.npy' % (fold),
     )
     train_loader = DataLoader(
         train_dataset,
@@ -196,7 +196,7 @@ def run_train():
     val_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='valid-a%d-4302.npy' % (fold),
+        split='valid_a%d_4302.npy' % (fold),
         # split='test-a%d_%d-687.npy' % (train_fold, valid_fold),
     )
     valid_loader = DataLoader(

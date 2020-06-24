@@ -2,8 +2,9 @@ from common import *
 from scipy import signal
 
 #--------------
-DATA_DIR = DATA_ROOT_PATH + '/CinC2020'
-class_map = ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
+DATA_DIR = DATA_ROOT_PATH + '/CinC2020_V1'
+# ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
+class_map = [164889003, 270492004, 164909002, 426783006, 284470004, 164884008, 59118001, 429622005, 164931005]
 
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv):
@@ -19,11 +20,11 @@ class CinCDataset(Dataset):
         self.csv     = csv
         self.mode    = mode
 
-        df = pd.read_csv(DATA_DIR + '/cinc2020_label.csv') #.fillna('')
+        df = pd.read_csv(DATA_DIR + '/SNOMED_overall_label.csv') #.fillna('')
 
         if split is not None:
             all_data = df['Recording'].values
-            s = np.load(DATA_DIR + '/split_v2/%s' % split)
+            s = np.load(DATA_DIR + '/split_5F_v0/%s' % split)
             s_data = []
             for d in all_data:
                 if d[:] in s:
@@ -32,17 +33,21 @@ class CinCDataset(Dataset):
             df = df_loc_by_list(df, 'Recording', s_data)
 
         self.Recording = df['Recording'].values
+        self.labels = []
+        df = df.set_index('Recording')
 
-        # self.First_label = df['First_label'].values
-        # self.Second_label = df['Second_label'].values
-        # self.Third_label = df['Third_label'].values
-        #
-        # for c in class_map:
-        #     self.First_label[self.First_label == c] = class_map.index(c)
-        #     self.Second_label[self.Second_label == c] = class_map.index(c)
-        #     self.Third_label[self.Third_label == c] = class_map.index(c)
+        for i in range(len(df)) :
+            d = df.loc[self.Recording[i]]
 
-        self.num_image = len(self.Recording)
+            label = np.zeros(9)
+            for j in range(len(d)):
+                l_index = np.where(class_map == d[j])
+                if len(l_index[0]) != 0:
+                    label[l_index[0][0]] = 1
+
+            self.labels.append(label)
+
+        self.num_image = len(df)
 
     def __str__(self):
         string  = ''
@@ -59,26 +64,24 @@ class CinCDataset(Dataset):
 
     def __getitem__(self, index):
         ecg_id = self.Recording[index]
-        First_label = self.First_label[index]
-        Second_label = self.Second_label[index]
-        Third_label = self.Third_label[index]
 
-        label = np.zeros(len(class_map))
-        label[First_label] = 1
-        if not math.isnan(Second_label):
-            label[Second_label] = 1
-        if not math.isnan(Third_label):
-            label[Third_label] = 1
+        label = self.labels[index]
 
-        temp_ecg = sio.loadmat(DATA_DIR + '/Training_WFDB/%s.mat' % ecg_id)['val']
+        old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
+        old_temp_ecg = np.array(old_temp_ecg / 1000)
         if ecg_id.startswith('S'):
-            temp_ecg = resample(temp_ecg, 1000)
+            temp_ecg = []
+            for i in range(len(old_temp_ecg)):
+                temp_ecg.append(resample(old_temp_ecg[i,:], 1000))
         else:
-            temp_ecg = resample(temp_ecg, 500)
+            temp_ecg = []
+            for i in range(len(old_temp_ecg)):
+                temp_ecg.append(resample(old_temp_ecg[i,:], 500))
+
+        temp_ecg = np.array(temp_ecg)
 
         ecg = np.zeros((12, 18000), dtype=np.float32)
         ecg[:,-temp_ecg.shape[1]:] = temp_ecg[:,-18000:]
-        ecg = np.array(ecg / 1000, dtype=np.float32)
 
         infor = Struct(
             index  = index,
@@ -218,10 +221,8 @@ def run_check_DataLoader():
 
     a = 0
     for t, (input, truth, infor) in enumerate(train_loader):
+        print(infor.ecg_id)
         print(truth)
-        exit()
-        a += len(infor)
-        print(len(infor))
         # for i in range(len(infor)):
         #     with open(label_save_path + '/' + infor[i].ecg_id + '.json', 'w') as f:
         #         json_str = json.dumps({'label' : truth[i].tolist()})
@@ -240,29 +241,21 @@ def run_check_DataSet():
     val_dataset = CinCDataset(
         mode='train',
         csv='train.csv',
-        split='valid-a%d-4302.npy' % (0),
+        split='valid_a%d_4302.npy' % (0),
     )
 
-    label_save_path = 'F:/data_root/CinC2020/check_label'
-    ecg_save_path = 'F:/data_root/CinC2020/check_ecg'
+    # label_save_path = 'F:/data_root/CinC2020/check_label'
+    ecg_save_path = DATA_DIR + '/check_ecg'
 
     a = 0
     for t, (input, truth, infor) in enumerate(val_dataset):
-        print(truth)
-        exit()
-        a += len(infor)
-        print(len(infor))
-        # for i in range(len(infor)):
-        #     with open(label_save_path + '/' + infor[i].ecg_id + '.json', 'w') as f:
-        #         json_str = json.dumps({'label' : truth[i].tolist()})
-        #         f.write(json_str)
-        #
-        #     sio.savemat(ecg_save_path + '/%s.mat'%infor[i].ecg_id, {'ecgraw' : input[i]})
 
-        # a += 1
-        #
-        # if a > 20:
-        #     break
+        sio.savemat(ecg_save_path + '/%s.mat'%infor.ecg_id, {'ecgraw' : input})
+
+        a += 1
+
+        if a > 20:
+            break
 
     print(len(val_dataset))
     print(a)

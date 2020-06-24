@@ -1,14 +1,6 @@
-from scipy import io as sio
-import glob
+from include import *
 
-# files = sorted(glob.glob('F:/data_root/CinC2020/Training_WFDB/*.mat'))
-#
-# max_len = 0
-# for f in files:
-#     data = sio.loadmat(f)['val']
-#     data_len = data.shape[1]
-#     if data_len > max_len:
-#         max_len = data_len
-#         print(max_len)
+DATA_DIR = DATA_ROOT_PATH + '/CinC2020_V1'
+s = np.load(DATA_DIR + '/split_5F_v0/valid_a0_4302.npy')
 
-print(72000 / 256 / 5)
+print(s)
