@@ -2,98 +2,8 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
-from model.model_resnet34_he import *
+from model.model_resnet34 import *
 from dataset_60s import *
-
-def compute_beta_score(labels, output, beta, num_classes, check_errors=True):
-    # Check inputs for errors.
-    if check_errors:
-        if len(output) != len(labels):
-            raise Exception('Numbers of outputs and labels must be the same.')
-
-    # Populate contingency table.
-    num_recordings = len(labels)
-
-    fbeta_l = np.zeros(num_classes)
-    gbeta_l = np.zeros(num_classes)
-    fmeasure_l = np.zeros(num_classes)
-    accuracy_l = np.zeros(num_classes)
-
-    f_beta = 0
-    g_beta = 0
-    f_measure = 0
-    accuracy = 0
-
-    # Weight function
-    C_l = np.ones(num_classes);
-
-    for j in range(num_classes):
-        tp = 0
-        fp = 0
-        fn = 0
-        tn = 0
-
-        for i in range(num_recordings):
-
-            num_labels = np.sum(labels[i])
-
-            if labels[i][j] and output[i][j]:
-                tp += 1 / num_labels
-            elif not labels[i][j] and output[i][j]:
-                fp += 1 / num_labels
-            elif labels[i][j] and not output[i][j]:
-                fn += 1 / num_labels
-            elif not labels[i][j] and not output[i][j]:
-                tn += 1 / num_labels
-
-        # Summarize contingency table.
-        if ((1 + beta ** 2) * tp + (fn * beta ** 2) + fp):
-            fbeta_l[j] = float((1 + beta ** 2) * tp) / float(((1 + beta ** 2) * tp) + (fn * beta ** 2) + fp)
-        else:
-            fbeta_l[j] = 1.0
-
-        if (tp + fp + beta * fn):
-            gbeta_l[j] = float(tp) / float(tp + fp + beta * fn)
-        else:
-            gbeta_l[j] = 1.0
-
-        if tp + fp + fn + tn:
-            accuracy_l[j] = float(tp + tn) / float(tp + fp + fn + tn)
-        else:
-            accuracy_l[j] = 1.0
-
-        if 2 * tp + fp + fn:
-            fmeasure_l[j] = float(2 * tp) / float(2 * tp + fp + fn)
-        else:
-            fmeasure_l[j] = 1.0
-
-    for i in range(num_classes):
-        f_beta += fbeta_l[i] * C_l[i]
-        g_beta += gbeta_l[i] * C_l[i]
-        f_measure += fmeasure_l[i] * C_l[i]
-        accuracy += accuracy_l[i] * C_l[i]
-
-    f_beta = float(f_beta) / float(num_classes)
-    g_beta = float(g_beta) / float(num_classes)
-    f_measure = float(f_measure) / float(num_classes)
-    accuracy = float(accuracy) / float(num_classes)
-
-    return accuracy, f_measure, f_beta, g_beta
-
-#https://stackoverflow.com/questions/43162506/undefinedmetricwarning-f-score-is-ill-defined-and-being-set-to-0-0-in-labels-wi
-def metric(truth, predict):
-    truth_for_cls = np.sum(truth, axis=0) + 1e-11
-    predict_for_cls = np.sum(predict, axis=0) + 1e-11
-
-    # TP
-    count = truth + predict
-    count[count != 2] = 0
-    TP = np.sum(count, axis=0) / 2
-
-    precision = TP / predict_for_cls
-    recall = TP / truth_for_cls
-
-    return precision, recall
 
 ################################################################################################
 #------------------------------------
@@ -107,7 +17,6 @@ def do_valid(net, valid_loader, out_dir=None):
         batch_size = len(infor)
 
         net.eval()
-        input = input.unsqueeze(3)
         input  = input.cuda()
         truth  = truth.cuda()
 
@@ -136,10 +45,6 @@ def do_valid(net, valid_loader, out_dir=None):
 
     valid_truth = np.vstack(valid_truth)
     valid_predict = np.vstack(valid_predict)
-
-    if 0:
-        out_result(valid_loader, valid_predict)
-        exit()
 
     accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
     valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
@@ -216,7 +121,7 @@ def run_train():
 
     ## net ----------------------------------------
     log.write('** net setting **\n')
-    net = resnet34().cuda()
+    net = Net(12, num_classes=len(class_map)).cuda()
     log.write('\tinitial_checkpoint = %s\n' % initial_checkpoint)
 
     if initial_checkpoint is not None:
@@ -353,7 +258,6 @@ def run_train():
             # one iteration update  -------------
             #net.set_mode('train',is_freeze_bn=True)
             net.train()
-            input = input.unsqueeze(3)
             input = input.cuda()
             truth = truth.cuda()
 
