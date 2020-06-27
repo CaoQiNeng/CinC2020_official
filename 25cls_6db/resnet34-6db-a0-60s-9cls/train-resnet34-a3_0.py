@@ -56,7 +56,7 @@ def run_train():
     global out_dir
     out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-9cls'%(fold)
     initial_checkpoint = None
-    # initial_checkpoint = ROOT_PATH + '/CinC2020_logs/result-reset34-a%d_%d-full_size-9cls/checkpoint/00021800_model.pth'%(train_fold, valid_fold)
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-9cls/checkpoint/00028400_model.pth'%(fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
