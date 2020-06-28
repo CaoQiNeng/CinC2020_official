@@ -13,7 +13,7 @@ for i in range(len(temp_class_map)):
     if temp_class_map[i] not in same_class.values():
         class_map.append(temp_class_map[i])
 
-scored_map = np.array(class_map)
+class_map = np.array(class_map)
 
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv):
@@ -45,7 +45,7 @@ class CinCDataset(Dataset):
                 if d[j] in same_class.keys():
                     d[j] = same_class[d[j]]
 
-                l_index = np.where(scored_map == int(d[j]))
+                l_index = np.where(class_map == int(d[j]))
                 if len(l_index[0]) != 0:
                     label[l_index[0][0]] = 1
 
@@ -90,6 +90,7 @@ class CinCDataset(Dataset):
         infor = Struct(
             index  = index,
             ecg_id = ecg_id,
+            path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id
         )
 
         return ecg, label, infor
