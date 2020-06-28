@@ -4,8 +4,8 @@ from scipy import signal
 #--------------
 DATA_DIR = DATA_ROOT_PATH + '/CinC2020_V1'
 # ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
-temp_class_map = pd.read_csv('/home1/cqn/data_root/CinC2020_V1/evaluation-2020-master/dx_mapping_scored.csv')['SNOMED CT Code'].tolist()
-unscored_map = pd.read_csv('/home1/cqn/data_root/CinC2020_V1/evaluation-2020-master/dx_mapping_unscored.csv')['SNOMED CT Code'].tolist()
+temp_class_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/dx_mapping_scored.csv')['SNOMED CT Code'].tolist()
+unscored_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/dx_mapping_unscored.csv')['SNOMED CT Code'].tolist()
 same_class = {'713427006' : '59118001', '63593006' : '284470004', '17338001' : '427172004'}
 class_map = []
 
@@ -34,6 +34,8 @@ class CinCDataset(Dataset):
             df = df_loc_by_list(df, 'Recording', s_data)
 
         self.Recording = df['Recording'].values
+        print(self.Recording)
+        exit()
         # self.labels = []
         # df = df.set_index('Recording')
         # df = df.fillna(0)
@@ -254,51 +256,6 @@ def run_check_DataLoader():
         #     break
     print(len(train_loader.dataset))
     print(a)
-
-# Load labels from header/label files.
-def load_labels(label_files, normal):
-    # The labels should have the following form:
-    #
-    # Dx: label_1, label_2, label_3
-    #
-    num_recordings = len(label_files)
-
-    # Load diagnoses.
-    tmp_labels = list()
-    for i in range(num_recordings):
-        with open(label_files[i], 'r') as f:
-            for l in f:
-                if l.startswith('#Dx'):
-                    dxs = [arr.strip() for arr in l.split(': ')[1].split(',')]
-                    tmp_labels.append(dxs)
-
-    # Identify classes.
-    classes = set.union(*map(set, tmp_labels))
-    if normal not in classes:
-        classes.add(normal)
-        # print('- The normal class {} is not one of the label classes, so it has been automatically added, but please check that you chose the correct normal class.'.format(normal))
-    classes = sorted(classes)
-    num_classes = len(classes)
-
-    # Use one-hot encoding for labels.
-    labels = np.zeros((num_recordings, num_classes), dtype=np.bool)
-    for i in range(num_recordings):
-        dxs = tmp_labels[i]
-        for dx in dxs:
-            j = classes.index(dx)
-            labels[i, j] = 1
-
-    # If the labels for the normal class and one or more other classes are positive, then make the label for the normal class negative.
-    # If the labels for all classes are negative, then make the label for the normal class positive.
-    normal_index = classes.index(normal)
-    for i in range(num_recordings):
-        num_positive_classes = np.sum(labels[i, :])
-        if labels[i, normal_index]==1 and num_positive_classes>1:
-            labels[i, normal_index] = 0
-        elif num_positive_classes==0:
-            labels[i, normal_index] = 1
-
-    return classes, labels
 
 def run_check_DataSet():
     val_dataset = CinCDataset(
