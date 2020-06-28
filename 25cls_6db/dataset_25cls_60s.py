@@ -33,23 +33,24 @@ class CinCDataset(Dataset):
 
             df = df_loc_by_list(df, 'Recording', s_data)
 
-        self.Recording = df['Recording'].values
-        self.labels = []
-        df = df.set_index('Recording')
-
-        for i in range(len(df)) :
-            d = df.loc[self.Recording[i]].tolist()[:-1]
-
-            label = np.zeros(len(unscored_map))
-            for j in range(len(d)):
-                if d[j] in same_class.keys():
-                    d[j] = same_class[d[j]]
-
-                l_index = np.where(class_map == int(d[j]))
-                if len(l_index[0]) != 0:
-                    label[l_index[0][0]] = 1
-
-            self.labels.append(label)
+        # self.Recording = df['Recording'].values
+        # self.labels = []
+        # df = df.set_index('Recording')
+        # df = df.fillna(0)
+        #
+        # for i in range(len(df)) :
+        #     d = df.loc[self.Recording[i]].tolist()[:-1]
+        #
+        #     label = np.zeros(len(unscored_map))
+        #     for j in range(len(d)):
+        #         if d[j] in same_class.keys():
+        #             d[j] = same_class[d[j]]
+        #
+        #         l_index = np.where(class_map == int(d[j]))
+        #         if len(l_index[0]) != 0:
+        #             label[l_index[0][0]] = 1
+        #
+        #     self.labels.append(label)
 
         self.num_image = len(df)
 
@@ -69,7 +70,7 @@ class CinCDataset(Dataset):
     def __getitem__(self, index):
         ecg_id = self.Recording[index]
 
-        label = self.labels[index]
+        # label = self.labels[index]
 
         old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
         old_temp_ecg = np.array(old_temp_ecg / 1000)
@@ -93,7 +94,7 @@ class CinCDataset(Dataset):
             path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id
         )
 
-        return ecg, label, infor
+        return ecg, _, infor
 
 class CustomSampler(Sampler):
 
@@ -250,12 +251,12 @@ def run_check_DataSet():
     )
 
     # label_save_path = 'F:/data_root/CinC2020/check_label'
-    ecg_save_path = DATA_DIR + '/check_ecg'
+    # ecg_save_path = DATA_DIR + '/check_ecg'
 
     a = 0
     for t, (input, truth, infor) in enumerate(val_dataset):
 
-        sio.savemat(ecg_save_path + '/%s.mat'%infor.ecg_id, {'ecgraw' : input})
+        # sio.savemat(ecg_save_path + '/%s.mat'%infor.ecg_id, {'ecgraw' : input})
 
         a += 1
 

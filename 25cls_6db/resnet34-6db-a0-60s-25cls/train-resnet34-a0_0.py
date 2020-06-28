@@ -19,8 +19,9 @@ def do_valid(net, valid_loader, out_dir=None):
     for t, (input, truth, infor) in enumerate(valid_loader):
         batch_size = len(infor)
 
-        label_files.append(infor.path)
-        output_classes.append(class_map)
+        for i in range(batch_size) :
+            label_files.append(infor[i].path)
+            output_classes.append(class_map)
 
         net.eval()
         input  = input.cuda()
