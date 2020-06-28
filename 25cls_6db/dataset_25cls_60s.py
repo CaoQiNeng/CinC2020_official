@@ -34,8 +34,31 @@ class CinCDataset(Dataset):
             df = df_loc_by_list(df, 'Recording', s_data)
 
         self.Recording = df['Recording'].values
-        print(self.Recording)
-        exit()
+
+        if mode == 'train' :
+            truth_path = DATA_DIR + '/truth_%s_train' % split
+            predict_path = DATA_DIR + '/predict_%s_train' % split
+        else:
+            truth_path = DATA_DIR + '/truth_%s_valid' % split
+            predict_path = DATA_DIR + '/predict_%s_valid' % split
+
+        os.makedirs(truth_path, exist_ok=True)
+        os.makedirs(predict_path, exist_ok=True)
+
+        for i, r in enumerate(self.Recording):
+            shutil.copy(DATA_DIR + '/overall_hea/%s.hea' % r, truth_path + '/%s.hea' % r)
+            shutil.copy(DATA_DIR + '/overall_hea/%s.hea' % r, predict_path + '/%s.csv' % r)
+
+        normal = '426783006'
+
+        # Find the label and output files.
+        print('Finding label and output files...')
+        label_files, output_files = find_challenge_files(truth_path, predict_path)
+
+        # Load the labels and outputs.
+        print('Loading labels and outputs...')
+        label_classes, labels = load_labels(label_files, normal)
+
         # self.labels = []
         # df = df.set_index('Recording')
         # df = df.fillna(0)
@@ -195,6 +218,72 @@ class BalanceClassSampler(Sampler):
 
     def __len__(self):
         return self.length
+
+# Find Challenge files.
+def find_challenge_files(label_directory, output_directory):
+    label_files = list()
+    output_files = list()
+    for f in sorted(os.listdir(label_directory)):
+        F = os.path.join(label_directory, f) # Full path for label file
+        if os.path.isfile(F) and F.lower().endswith('.hea') and not f.lower().startswith('.'):
+            root, ext = os.path.splitext(f)
+            g = root + '.csv'
+            G = os.path.join(output_directory, g) # Full path for corresponding output file
+            if os.path.isfile(G):
+                label_files.append(F)
+                output_files.append(G)
+            else:
+                raise IOError('Output file {} not found for label file {}.'.format(g, f))
+
+    if label_files and output_files:
+        return label_files, output_files
+    else:
+        raise IOError('No label or output files found.')
+
+# Load labels from header/label files.
+def load_labels(label_files, normal):
+    # The labels should have the following form:
+    #
+    # Dx: label_1, label_2, label_3
+    #
+    num_recordings = len(label_files)
+
+    # Load diagnoses.
+    tmp_labels = list()
+    for i in range(num_recordings):
+        with open(label_files[i], 'r') as f:
+            for l in f:
+                if l.startswith('#Dx'):
+                    dxs = [arr.strip() for arr in l.split(': ')[1].split(',')]
+                    tmp_labels.append(dxs)
+
+    # Identify classes.
+    classes = set.union(*map(set, tmp_labels))
+    if normal not in classes:
+        classes.add(normal)
+        print('- The normal class {} is not one of the label classes, so it has been automatically added, but please check that you chose the correct normal class.'.format(normal))
+    classes = sorted(classes)
+    num_classes = len(classes)
+
+    # Use one-hot encoding for labels.
+    labels = np.zeros((num_recordings, num_classes), dtype=np.bool)
+    for i in range(num_recordings):
+        dxs = tmp_labels[i]
+        for dx in dxs:
+            j = classes.index(dx)
+            labels[i, j] = 1
+
+    # If the labels for the normal class and one or more other classes are positive, then make the label for the normal class negative.
+    # If the labels for all classes are negative, then make the label for the normal class positive.
+    normal_index = classes.index(normal)
+    for i in range(num_recordings):
+        num_positive_classes = np.sum(labels[i, :])
+        if labels[i, normal_index]==1 and num_positive_classes>1:
+            labels[i, normal_index] = 0
+        elif num_positive_classes==0:
+            labels[i, normal_index] = 1
+
+    return classes, labels
 
 def resample(data, sampr, after_Hz=300):
     data_len = len(data)
