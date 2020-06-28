@@ -15,13 +15,17 @@ def do_valid(net, valid_loader, out_dir=None):
     valid_num = 0
     label_files = []
     output_classes = []
+    label_classes = []
+    label_in_infors = []
 
     for t, (input, truth, infor) in enumerate(valid_loader):
         batch_size = len(infor)
 
         for i in range(batch_size) :
             label_files.append(infor[i].path)
-            output_classes.append(class_map)
+            output_classes.append(class_map.tolist())
+            label_classes.append(infor[i].label_class)
+            label_in_infors.append(infor[i].label_in_infor)
 
         net.eval()
         input  = input.cuda()
@@ -54,7 +58,7 @@ def do_valid(net, valid_loader, out_dir=None):
 
     # label_files, output_classes, binary_outputs, scalar_outputs
     auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric = \
-        evaluate_12ECG_score(label_files, output_classes, valid_predict_class, valid_predict)
+        evaluate_12ECG_score(label_classes, label_in_infors, output_classes, valid_predict_class, valid_predict)
     valid_precision, valid_recall = metric(valid_truth, valid_predict_class.astype(int))
 
     return [auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric], \

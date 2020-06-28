@@ -6,12 +6,12 @@ DATA_DIR = DATA_ROOT_PATH + '/CinC2020_V1'
 # ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
 temp_class_map = pd.read_csv('/home1/cqn/data_root/CinC2020_V1/evaluation-2020-master/dx_mapping_scored.csv')['SNOMED CT Code'].tolist()
 unscored_map = pd.read_csv('/home1/cqn/data_root/CinC2020_V1/evaluation-2020-master/dx_mapping_unscored.csv')['SNOMED CT Code'].tolist()
-same_class = {713427006 : 59118001, 63593006 : 284470004, 17338001 : 427172004}
+same_class = {'713427006' : '59118001', '63593006' : '284470004', '17338001' : '427172004'}
 class_map = []
 
 for i in range(len(temp_class_map)):
     if temp_class_map[i] not in same_class.values():
-        class_map.append(temp_class_map[i])
+        class_map.append(str(temp_class_map[i]))
 
 class_map = np.array(class_map)
 
@@ -33,7 +33,7 @@ class CinCDataset(Dataset):
 
             df = df_loc_by_list(df, 'Recording', s_data)
 
-        # self.Recording = df['Recording'].values
+        self.Recording = df['Recording'].values
         # self.labels = []
         # df = df.set_index('Recording')
         # df = df.fillna(0)
@@ -72,10 +72,15 @@ class CinCDataset(Dataset):
 
         # label = self.labels[index]
         normal = '426783006'
-        label_classes, label_in_infors = load_labels([DATA_DIR + '/overall_hea/%s.hea' % ecg_id], normal)
-        print(label_in_infors)
-        print()
-        exit()
+        label_class, label_in_infor = load_labels([DATA_DIR + '/overall_hea/%s.hea' % ecg_id], normal)
+        label = np.zeros(len(class_map))
+        for j in range(len(label_class)):
+            if label_class[j] in same_class.keys():
+                label_class[j] = same_class[label_class[j]]
+
+            l_index = np.where(class_map == label_class[j])
+            if len(l_index[0]) != 0 and label_in_infor[j]:
+                label[l_index[0][0]] = 1
 
         old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
         old_temp_ecg = np.array(old_temp_ecg / 1000)
@@ -97,8 +102,8 @@ class CinCDataset(Dataset):
             index  = index,
             ecg_id = ecg_id,
             path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id,
-            label_class = label_classes[0],
-            label_in_infor = label_in_infors[0]
+            label_class = label_class,
+            label_in_infor = label_in_infor
         )
 
         return ecg, label, infor
@@ -271,7 +276,7 @@ def load_labels(label_files, normal):
     classes = set.union(*map(set, tmp_labels))
     if normal not in classes:
         classes.add(normal)
-        print('- The normal class {} is not one of the label classes, so it has been automatically added, but please check that you chose the correct normal class.'.format(normal))
+        # print('- The normal class {} is not one of the label classes, so it has been automatically added, but please check that you chose the correct normal class.'.format(normal))
     classes = sorted(classes)
     num_classes = len(classes)
 
