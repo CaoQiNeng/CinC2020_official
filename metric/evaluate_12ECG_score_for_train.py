@@ -18,7 +18,7 @@
 
 import numpy as np, os, os.path, sys
 
-def evaluate_12ECG_score(label_files, tmp_labels, tmp_binary_outputs, tmp_scalar_outputs):
+def evaluate_12ECG_score(label_classes, labels, tmp_labels, tmp_binary_outputs, tmp_scalar_outputs):
     # Define the weights, mapping to SNOMED-CT codes for row/columns of weights, and the SNOMED-CT code for the normal class.
     weights_file = 'weights.csv'
     normal = '426783006'
@@ -29,7 +29,7 @@ def evaluate_12ECG_score(label_files, tmp_labels, tmp_binary_outputs, tmp_scalar
 
     # Load the labels and outputs.
     print('Loading labels and outputs...')
-    label_classes, labels = load_labels(label_files, normal)
+    # label_classes, labels = load_labels(label_files, normal)
     output_classes, binary_outputs, scalar_outputs = load_outputs(tmp_labels, tmp_binary_outputs, tmp_scalar_outputs)
 
     # Organize/sort the labels and outputs.

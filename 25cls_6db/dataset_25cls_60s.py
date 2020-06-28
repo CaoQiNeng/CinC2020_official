@@ -71,6 +71,11 @@ class CinCDataset(Dataset):
         ecg_id = self.Recording[index]
 
         # label = self.labels[index]
+        normal = '426783006'
+        label_classes, label_in_infors = load_labels([DATA_DIR + '/overall_hea/%s.hea' % ecg_id], normal)
+        print(label_in_infors)
+        print()
+        exit()
 
         old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
         old_temp_ecg = np.array(old_temp_ecg / 1000)
@@ -91,10 +96,12 @@ class CinCDataset(Dataset):
         infor = Struct(
             index  = index,
             ecg_id = ecg_id,
-            path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id
+            path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id,
+            label_class = label_classes[0],
+            label_in_infor = label_in_infors[0]
         )
 
-        return ecg, _, infor
+        return ecg, label, infor
 
 class CustomSampler(Sampler):
 
@@ -242,6 +249,51 @@ def run_check_DataLoader():
         #     break
     print(len(train_loader.dataset))
     print(a)
+
+# Load labels from header/label files.
+def load_labels(label_files, normal):
+    # The labels should have the following form:
+    #
+    # Dx: label_1, label_2, label_3
+    #
+    num_recordings = len(label_files)
+
+    # Load diagnoses.
+    tmp_labels = list()
+    for i in range(num_recordings):
+        with open(label_files[i], 'r') as f:
+            for l in f:
+                if l.startswith('#Dx'):
+                    dxs = [arr.strip() for arr in l.split(': ')[1].split(',')]
+                    tmp_labels.append(dxs)
+
+    # Identify classes.
+    classes = set.union(*map(set, tmp_labels))
+    if normal not in classes:
+        classes.add(normal)
+        print('- The normal class {} is not one of the label classes, so it has been automatically added, but please check that you chose the correct normal class.'.format(normal))
+    classes = sorted(classes)
+    num_classes = len(classes)
+
+    # Use one-hot encoding for labels.
+    labels = np.zeros((num_recordings, num_classes), dtype=np.bool)
+    for i in range(num_recordings):
+        dxs = tmp_labels[i]
+        for dx in dxs:
+            j = classes.index(dx)
+            labels[i, j] = 1
+
+    # If the labels for the normal class and one or more other classes are positive, then make the label for the normal class negative.
+    # If the labels for all classes are negative, then make the label for the normal class positive.
+    normal_index = classes.index(normal)
+    for i in range(num_recordings):
+        num_positive_classes = np.sum(labels[i, :])
+        if labels[i, normal_index]==1 and num_positive_classes>1:
+            labels[i, normal_index] = 0
+        elif num_positive_classes==0:
+            labels[i, normal_index] = 1
+
+    return classes, labels
 
 def run_check_DataSet():
     val_dataset = CinCDataset(
