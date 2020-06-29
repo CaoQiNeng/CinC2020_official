@@ -10,13 +10,14 @@ same_class = {'713427006' : '59118001', '63593006' : '284470004', '17338001' : '
 class_map = []
 
 for i in range(len(temp_class_map)):
-    if temp_class_map[i] not in same_class.values():
+    if str(temp_class_map[i]) not in same_class.values():
         class_map.append(str(temp_class_map[i]))
 
+class_map.append('999999')
 class_map = np.array(class_map)
 
 class CinCDataset(Dataset):
-    def __init__(self, split, mode, csv):
+    def __init__(self, split, mode, csv, fold):
         self.split   = split
         self.csv     = csv
         self.mode    = mode
@@ -36,46 +37,41 @@ class CinCDataset(Dataset):
         self.Recording = df['Recording'].values
 
         if mode == 'train' :
-            truth_path = DATA_DIR + '/truth_%s_train' % split
-            predict_path = DATA_DIR + '/predict_%s_train' % split
+            self.truth_path = DATA_DIR + '/truth_a%s_train' % fold
+            self.predict_path = DATA_DIR + '/predict_a%s_train' % fold
         else:
-            truth_path = DATA_DIR + '/truth_%s_valid' % split
-            predict_path = DATA_DIR + '/predict_%s_valid' % split
+            self.truth_path = DATA_DIR + '/truth_a%s_valid' % fold
+            self.predict_path = DATA_DIR + '/predict_a%s_valid' % fold
 
-        os.makedirs(truth_path, exist_ok=True)
-        os.makedirs(predict_path, exist_ok=True)
+        os.makedirs(self.truth_path, exist_ok=True)
+        os.makedirs(self.predict_path, exist_ok=True)
 
         for i, r in enumerate(self.Recording):
-            shutil.copy(DATA_DIR + '/overall_hea/%s.hea' % r, truth_path + '/%s.hea' % r)
-            shutil.copy(DATA_DIR + '/overall_hea/%s.hea' % r, predict_path + '/%s.csv' % r)
+            shutil.copy(DATA_DIR + '/overall_hea/%s.hea' % r, self.truth_path + '/%s.hea' % r)
 
-        normal = '426783006'
+        self.labels = []
+        df = df.set_index('Recording')
+        df = df.fillna(0)
 
-        # Find the label and output files.
-        print('Finding label and output files...')
-        label_files, output_files = find_challenge_files(truth_path, predict_path)
+        for i in range(len(df)) :
+            d = df.loc[self.Recording[i]].tolist()[:-1]
+            d = [str(int(k)) for k in d]
 
-        # Load the labels and outputs.
-        print('Loading labels and outputs...')
-        label_classes, labels = load_labels(label_files, normal)
+            label = np.zeros(len(class_map))
+            label_num = 0
+            for j in range(len(d)):
+                if d[j] in same_class.keys():
+                    d[j] = same_class[d[j]]
 
-        # self.labels = []
-        # df = df.set_index('Recording')
-        # df = df.fillna(0)
-        #
-        # for i in range(len(df)) :
-        #     d = df.loc[self.Recording[i]].tolist()[:-1]
-        #
-        #     label = np.zeros(len(unscored_map))
-        #     for j in range(len(d)):
-        #         if d[j] in same_class.keys():
-        #             d[j] = same_class[d[j]]
-        #
-        #         l_index = np.where(class_map == int(d[j]))
-        #         if len(l_index[0]) != 0:
-        #             label[l_index[0][0]] = 1
-        #
-        #     self.labels.append(label)
+                l_index = np.where(class_map == d[j])
+                if len(l_index[0]) != 0:
+                    label[l_index[0][0]] = 1
+                    label_num += 1
+
+            if label_num == 0:
+                label[len(label) - 1] = 1
+
+            self.labels.append(label)
 
         self.num_image = len(df)
 
@@ -95,17 +91,7 @@ class CinCDataset(Dataset):
     def __getitem__(self, index):
         ecg_id = self.Recording[index]
 
-        # label = self.labels[index]
-        normal = '426783006'
-        label_class, label_in_infor = load_labels([DATA_DIR + '/overall_hea/%s.hea' % ecg_id], normal)
-        label = np.zeros(len(class_map))
-        for j in range(len(label_class)):
-            if label_class[j] in same_class.keys():
-                label_class[j] = same_class[label_class[j]]
-
-            l_index = np.where(class_map == label_class[j])
-            if len(l_index[0]) != 0 and label_in_infor[j]:
-                label[l_index[0][0]] = 1
+        label = self.labels[index]
 
         old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
         old_temp_ecg = np.array(old_temp_ecg / 1000)
@@ -126,9 +112,6 @@ class CinCDataset(Dataset):
         infor = Struct(
             index  = index,
             ecg_id = ecg_id,
-            path = DATA_DIR + '/overall_hea/%s.hea' % ecg_id,
-            label_class = label_class,
-            label_in_infor = label_in_infor
         )
 
         return ecg, label, infor

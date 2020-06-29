@@ -4,28 +4,37 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 from common  import *
 from model.model_resnet34 import *
 from dataset_25cls_60s import *
-from evaluate_12ECG_score_for_train import *
+from evaluate_12ECG_score import *
 
 ################################################################################################
+def save_challenge_predictions(output_directory, filename, scores, labels, classes):
+    new_file = filename + '.csv'
+    output_file = os.path.join(output_directory, new_file)
+
+    labels=np.asarray(labels,dtype=np.int)
+    scores=np.asarray(scores,dtype=np.float64)
+
+    # Include the filename as the recording number
+    recording_string = '#{}'.format(filename)
+    class_string = ','.join(classes)
+    label_string = ','.join(str(i) for i in labels)
+    score_string = ','.join(str(i) for i in scores)
+
+    with open(output_file, 'w') as f:
+        f.write(recording_string + '\n' + class_string + '\n' + label_string + '\n' + score_string + '\n')
+
 #------------------------------------
 def do_valid(net, valid_loader, out_dir=None):
     valid_loss = 0
     valid_predict = []
     valid_truth = []
+    infors = []
     valid_num = 0
-    label_files = []
-    output_classes = []
-    label_classes = []
-    label_in_infors = []
 
     for t, (input, truth, infor) in enumerate(valid_loader):
         batch_size = len(infor)
 
-        for i in range(batch_size) :
-            label_files.append(infor[i].path)
-            output_classes.append(class_map.tolist())
-            label_classes.append(infor[i].label_class)
-            label_in_infors.append(infor[i].label_in_infor)
+        infors.append(infor)
 
         net.eval()
         input  = input.cuda()
@@ -49,16 +58,21 @@ def do_valid(net, valid_loader, out_dir=None):
 
         pass  #-- end of one data loader --
 
-    assert(valid_num == len(valid_loader.dataset))
+    # assert(valid_num == len(valid_loader.dataset))
     valid_loss = valid_loss / (valid_num+1e-8)
 
+    infors = np.hstack(infors)
     valid_truth = np.vstack(valid_truth)
     valid_predict = np.vstack(valid_predict)
     valid_predict_class = valid_predict>0.5
 
+    for i, infor in enumerate(infors):
+        save_challenge_predictions(valid_loader.dataset.predict_path, infor.ecg_id, valid_predict[i][:-1],
+                                   valid_predict_class[i][:-1], class_map[:-1])
+
     # label_files, output_classes, binary_outputs, scalar_outputs
     auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric = \
-        evaluate_12ECG_score(label_classes, label_in_infors, output_classes, valid_predict_class, valid_predict)
+        evaluate_12ECG_score(valid_loader.dataset.truth_path, valid_loader.dataset.predict_path)
     valid_precision, valid_recall = metric(valid_truth, valid_predict_class.astype(int))
 
     return [auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric], \
@@ -98,6 +112,7 @@ def run_train():
         mode='train',
         csv='train.csv',
         split='train_a%d_38725.npy' % (fold),
+        fold = fold
     )
     train_loader = DataLoader(
         train_dataset,
@@ -112,10 +127,10 @@ def run_train():
     )
 
     val_dataset = CinCDataset(
-        mode='train',
+        mode='valid',
         csv='train.csv',
         split='valid_a%d_4302.npy' % (fold),
-        # split='test-a%d_%d-687.npy' % (train_fold, valid_fold),
+        fold = fold
     )
     valid_loader = DataLoader(
         val_dataset,
