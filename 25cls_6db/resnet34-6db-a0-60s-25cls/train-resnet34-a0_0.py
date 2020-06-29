@@ -158,7 +158,6 @@ def run_train():
         # net.load_state_dict(state_dict,strict=False)
         net.load_state_dict(state_dict,strict=True)  #True
 
-
     log.write('net=%s\n'%(type(net)))
     log.write('\n')
 
@@ -193,10 +192,10 @@ def run_train():
     log.write('** start training here! **\n')
     log.write('   batch_size=%d,  iter_accum=%d\n'%(batch_size,iter_accum))
     log.write('   experiment  = %s\n' % str(__file__.split('/')[-2:]))
-    log.write('----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
-    log.write('mode    rate    iter  epoch | CinC                    | loss  | IAVB      | AF        | AFL       | Brady     | IRBBB     | LAnFB     | LAD       | LBBB      | LQRSV     | NSIVCB    | PR        | PAC       | PVC       | LPR       | LQT       | QAb       | RAD       | RBBB      | SA        | 	SB       | SNR       | STach     | TAb       | TIn       | time        \n')
-    log.write('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
-              # train  0.01000   0.5   0.2 | 0.648 0.508 0.830 0.830 | 1.11  | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 0 hr 05 min
+    log.write('----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
+    log.write('mode    rate    iter  epoch | CinC                    | loss  | IAVB      | AF        | AFL       | Brady     | IRBBB     | LAnFB     | LAD       | LBBB      | LQRSV     | NSIVCB    | PR        | PAC       | PVC       | LPR       | LQT       | QAb       | RAD       | RBBB      | SA        | 	SB       | SNR       | STach     | TAb       | TIn       | Others    | time        \n')
+    log.write('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
+              # train  0.01000   0.5   0.2 | 0.648 0.508 0.830 0.830 | 1.11  | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 0 hr 05 min
     def message(rate, iter, epoch, CinC, loss, precision, recall, mode='print', train_mode = 'train'):
         precision_recall = []
         for p, r in zip(precision, recall) :
@@ -210,22 +209,17 @@ def run_train():
 
         text = \
             '%s   %0.5f %5.1f%s %4.1f | '%(train_mode, rate, iter/1000, asterisk, epoch,) +\
-            '%0.3f %0.3f %0.3f %0.3f | '%(*CinC, ) +\
+            '%0.3f %0.3f %0.3f %0.3f | '%(CinC[0], CinC[2], CinC[4], CinC[6]) +\
             '%4.3f | '%loss +\
-            '%0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | '%(*precision_recall, ) +\
+            '%0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | %0.2f %0.2f | '%(*precision_recall, ) +\
             '%s' % (time_to_str((timer() - start_timer),'min'))
 
         return text
 
     #----
-    CinC = (0, 0, 0)
     train_loss = 0
     train_precision = [0 for i in range(len(class_map))]
     train_recall = [0 for i in range(len(class_map))]
-    train_accuracy = 0
-    train_f_beta = 0
-    train_g_beta = 0
-    train_f_measure = 0
     iter = 0
     i    = 0
 
@@ -249,7 +243,7 @@ def run_train():
 
             if (iter % iter_log==0):
                 print('\r',end='',flush=True)
-                print(message(rate, iter, epoch, [train_accuracy, train_f_beta, train_g_beta, train_f_measure], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
+                print(message(rate, iter, epoch, [0 for i in CinC], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
                 log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
 
@@ -303,8 +297,6 @@ def run_train():
             predict = probability.cpu().detach().numpy()
             truth = truth.cpu().numpy().astype(int)
             batch_precision, batch_recall= metric(truth, (predict>0.5).astype(int))
-            batch_accuracy, batch_f_measure, batch_f_beta, batch_g_beta = compute_beta_score(truth, predict>0.5, 2,
-                                                                     truth.shape[1], check_errors=True)
 
             # print statistics  --------
             batch_loss      = loss
@@ -317,8 +309,7 @@ def run_train():
                 train_predict_list = np.vstack(train_predict_list)
                 train_truth_list = np.vstack(train_truth_list)
                 train_precision, train_recall = metric(train_truth_list, (train_predict_list>0.5).astype(int))
-                train_accuracy, train_f_measure, train_f_beta, train_g_beta = compute_beta_score(train_truth_list, train_predict_list>0.5, 2,
-                                                                         train_truth_list.shape[1], check_errors=True)
+
                 train_predict_list = []
                 train_truth_list = []
                 sum_train_loss = 0
@@ -326,7 +317,7 @@ def run_train():
 
             # print(batch_loss)
             print('\r',end='',flush=True)
-            print(message(rate, iter, epoch, [batch_accuracy, batch_f_beta, batch_g_beta, batch_f_measure], batch_loss, batch_precision, batch_recall, mode='log', train_mode='train'), end='',flush=True)
+            print(message(rate, iter, epoch, [0 for i in CinC], batch_loss, batch_precision, batch_recall, mode='log', train_mode='train'), end='',flush=True)
             i=i+1
 
         pass  #-- end of one data loader --
