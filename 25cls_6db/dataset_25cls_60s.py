@@ -16,6 +16,8 @@ for i in range(len(temp_class_map)):
 class_map.append('999999')
 class_map = np.array(class_map)
 
+print(class_map)
+
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv, fold):
         self.split   = split
