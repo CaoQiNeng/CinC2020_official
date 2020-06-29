@@ -166,11 +166,11 @@ def run_train():
     optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, net.parameters()), lr=schduler(0), momentum=0.0, weight_decay=0.0)
 
     num_iters   = 3000*1000
-    iter_smooth = 200
-    iter_log    = 200
-    iter_valid  = 200
+    iter_smooth = 400
+    iter_log    = 400
+    iter_valid  = 400
     iter_save   = [0, num_iters-1]\
-                   + list(range(0, num_iters, 200))#1*1000
+                   + list(range(0, num_iters, 400))#1*1000
 
     start_iter = 0
     start_epoch= 0
@@ -193,7 +193,7 @@ def run_train():
     log.write('   batch_size=%d,  iter_accum=%d\n'%(batch_size,iter_accum))
     log.write('   experiment  = %s\n' % str(__file__.split('/')[-2:]))
     log.write('----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
-    log.write('mode    rate    iter  epoch | CinC                    | loss  | IAVB      | AF        | AFL       | Brady     | IRBBB     | LAnFB     | LAD       | LBBB      | LQRSV     | NSIVCB    | PR        | PAC       | PVC       | LPR       | LQT       | QAb       | RAD       | RBBB      | SA        | 	SB       | SNR       | STach     | TAb       | TIn       | Others    | time        \n')
+    log.write('mode    rate    iter  epoch | CinC                    | loss  | IAVB      | AF        | AFL       | Brady     | IRBBB     | LAnFB     | LAD       | LBBB      | LQRSV     | NSIVCB    | PR        | PAC       | PVC       | LPR       | LQT       | QAb       | RAD       | RBBB      | SA        | SB       | SNR       | STach     | TAb       | TIn       | Others    | time        \n')
     log.write('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
               # train  0.01000   0.5   0.2 | 0.648 0.508 0.830 0.830 | 1.11  | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 1.11 0.29 | 0 hr 05 min
     def message(rate, iter, epoch, CinC, loss, precision, recall, mode='print', train_mode = 'train'):

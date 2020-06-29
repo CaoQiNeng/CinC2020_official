@@ -10,13 +10,11 @@ same_class = {'713427006' : '59118001', '63593006' : '284470004', '17338001' : '
 class_map = []
 
 for i in range(len(temp_class_map)):
-    if str(temp_class_map[i]) not in same_class.values():
+    if str(temp_class_map[i]) not in same_class.keys():
         class_map.append(str(temp_class_map[i]))
 
 class_map.append('999999')
 class_map = np.array(class_map)
-
-print(class_map)
 
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv, fold):
@@ -72,6 +70,9 @@ class CinCDataset(Dataset):
 
             if label_num == 0:
                 label[len(label) - 1] = 1
+
+            if label[np.where(class_map == '426783006')[0][0]] == 1 and np.sum(label) > 1:
+                label[np.where(class_map == '426783006')[0][0]] = 0
 
             self.labels.append(label)
 
