@@ -5,6 +5,7 @@ from common  import *
 from model.model_resnet34 import *
 from dataset_25cls_60s import *
 from evaluate_12ECG_score import *
+from out_result import *
 
 ################################################################################################
 def save_challenge_predictions(output_directory, filename, scores, labels, classes):
@@ -24,7 +25,7 @@ def save_challenge_predictions(output_directory, filename, scores, labels, class
         f.write(recording_string + '\n' + class_string + '\n' + label_string + '\n' + score_string + '\n')
 
 #------------------------------------
-def do_valid(net, valid_loader, out_dir=None):
+def do_valid(net, valid_loader, is_out=None):
     valid_loss = 0
     valid_predict = []
     valid_truth = []
@@ -70,6 +71,9 @@ def do_valid(net, valid_loader, out_dir=None):
         save_challenge_predictions(valid_loader.dataset.predict_path, infor.ecg_id, valid_predict[i][:-1],
                                    valid_predict_class[i][:-1], class_map[:-1])
 
+    if is_out :
+        out_result(valid_loader, valid_predict, out_dir)
+
     # label_files, output_classes, binary_outputs, scalar_outputs
     auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric = \
         evaluate_12ECG_score(valid_loader.dataset.truth_path, valid_loader.dataset.predict_path)
@@ -83,7 +87,7 @@ def run_train():
     global out_dir
     out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-25cls'%(fold)
     initial_checkpoint = None
-    # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-9cls/checkpoint/00028400_model.pth'%(fold)
+    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-25cls/checkpoint/00121200_model.pth'%(fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
@@ -246,6 +250,8 @@ def run_train():
                 print(message(rate, iter, epoch, [0 for i in CinC], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
                 log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
+
+            exit()
 
             top_loss = np.array([0.15 for i in range(10)])
             top_F2 = [0.83 for i in range(10)]
