@@ -32,3 +32,4 @@ def out_result(valid_loader, valid_predict, out_dir):
     df = pd.DataFrame(tabel, columns=columns)
 
     df.to_csv(out_dir + '/result.csv', index=False)
+
