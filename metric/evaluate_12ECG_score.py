@@ -20,43 +20,33 @@ import numpy as np, os, os.path, sys
 
 def evaluate_12ECG_score(label_directory, output_directory):
     # Define the weights, the SNOMED CT code for the normal class, and equivalent SNOMED CT codes.
-    weights_file = 'weights.csv'
+    weights_file = '/home1/cqn/CinC/CinC2020_official/metric/weights.csv'
     normal_class = '426783006'
     equivalent_classes = [['713427006', '59118001'], ['284470004', '63593006'], ['427172004', '17338001']]
 
     # Find the label and output files.
-    print('Finding label and output files...')
     label_files, output_files = find_challenge_files(label_directory, output_directory)
 
     # Load the labels and outputs.
-    print('Loading labels and outputs...')
     label_classes, labels = load_labels(label_files, normal_class, equivalent_classes)
     output_classes, binary_outputs, scalar_outputs = load_outputs(output_files, normal_class, equivalent_classes)
 
     # Organize/sort the labels and outputs.
-    print('Organizing labels and outputs...')
     classes, labels, binary_outputs, scalar_outputs = organize_labels_outputs(label_classes, output_classes, labels, binary_outputs, scalar_outputs)
 
     # Load the weights for the Challenge metric.
-    print('Loading weights...')
     weights = load_weights(weights_file, classes)
 
     # Evaluate the model by comparing the labels and outputs.
-    print('Evaluating model...')
 
-    print('- AUROC and AUPRC...')
     auroc, auprc = compute_auc(labels, scalar_outputs)
 
-    print('- Accuracy...')
     accuracy = compute_accuracy(labels, binary_outputs)
 
-    print('- F-measure...')
     f_measure = compute_f_measure(labels, binary_outputs)
 
-    print('- F-beta and G-beta measures...')
     f_beta_measure, g_beta_measure = compute_beta_measures(labels, binary_outputs, beta=2)
 
-    print('- Challenge metric...')
     challenge_metric = compute_challenge_metric(weights, labels, binary_outputs, classes, normal_class)
 
     print('Done.')
