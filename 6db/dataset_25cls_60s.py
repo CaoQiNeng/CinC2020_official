@@ -20,7 +20,6 @@ sdf = pd.read_csv(DATA_DIR + '/SNOMED_full_list_.csv')
 class_map_a = []
 for i, c in enumerate(class_map):
     class_map_a.append(sdf[sdf.SNOMED_CT_Code == float(c)]['Abbreviation'].values[0])
-print(class_map_a)
 
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv, fold):
