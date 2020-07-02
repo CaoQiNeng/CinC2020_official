@@ -17,7 +17,7 @@
 # different misclassification errors.
 
 import numpy as np, os, os.path, sys
-from dataset_32cls_60s_3fil import *
+from dataset_40cls_60s import *
 sdf = pd.read_csv(DATA_DIR + '/SNOMED_full_list_.csv')
 
 def evaluate_12ECG_score(label_directory, output_directory):

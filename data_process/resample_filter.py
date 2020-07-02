@@ -33,6 +33,7 @@ def bandpass_filter(data, lowcut, highcut, signal_freq, filter_order):
 
 for i in range(len(df)) :
     ecg_id = Recording[i]
+    print(ecg_id)
     old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
     old_temp_ecg = np.array(old_temp_ecg / 1000)
 
@@ -49,13 +50,13 @@ for i in range(len(df)) :
 
     for i in range(temp_ecg.shape[0]):
         temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
-                                         signal_freq=500, filter_order=1)
+                                         signal_freq=300, filter_order=1)
 
         temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
-                                         signal_freq=500, filter_order=1)
+                                         signal_freq=300, filter_order=1)
 
         temp_ecg[i, :] = bandpass_filter(temp_ecg[i, :], lowcut=0.5, highcut=49.0,
-                                         signal_freq=500, filter_order=1)
+                                         signal_freq=300, filter_order=1)
 
     sio.savemat(DATA_DIR + '/overall_3fil/' + ecg_id + '.mat', {'val': temp_ecg})
 
