@@ -84,7 +84,7 @@ def do_valid(net, valid_loader):
 def run_train():
     fold = 0
     global out_dir
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-40cls'%(fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-41cls'%(fold)
     initial_checkpoint = None
     # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-32cls/checkpoint/00048400_model.pth'%(fold)
 
