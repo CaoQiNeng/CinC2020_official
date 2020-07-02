@@ -20,7 +20,7 @@ class_map = np.array(class_map)
 sdf = pd.read_csv(DATA_DIR + '/SNOMED_full_list_.csv')
 class_map_a = []
 for i, c in enumerate(class_map):
-    class_map_a.append(sdf[sdf.SNOMED_CT_Code == int(c)]['Abbreviation'].values[0])
+    class_map_a.append(sdf[sdf.SNOMED_CT_Code == float(c)]['Abbreviation'].values[0])
 
 class CinCDataset(Dataset):
     def __init__(self, split, mode, csv, fold):
@@ -101,8 +101,8 @@ class CinCDataset(Dataset):
 
         label = self.labels[index]
 
-        old_temp_ecg = sio.loadmat(DATA_DIR + '/overall/%s.mat' % ecg_id)['val']
-        old_temp_ecg = np.array(old_temp_ecg / 1000)
+        old_temp_ecg = sio.loadmat(DATA_DIR + '/overall_3fil/%s.mat' % ecg_id)['val']
+        old_temp_ecg = np.array(old_temp_ecg)
         if ecg_id.startswith('S'):
             temp_ecg = []
             for i in range(len(old_temp_ecg)):

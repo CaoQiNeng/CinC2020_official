@@ -1,4 +1,4 @@
-from dataset_25cls_60s import *
+from dataset_32cls_60s import *
 
 def out_result(valid_loader, valid_predict, out_dir):
     probability = valid_predict

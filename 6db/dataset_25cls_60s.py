@@ -72,9 +72,8 @@ class CinCDataset(Dataset):
                 if len(l_index[0]) != 0:
                     label[l_index[0][0]] = 1
                     label_num += 1
-
-            if label_num == 0:
-                label[len(label) - 1] = 1
+                else:
+                    label[len(label) - 1] = 1
 
             if label[np.where(class_map == '426783006')[0][0]] == 1 and np.sum(label) > 1:
                 label[np.where(class_map == '426783006')[0][0]] = 0

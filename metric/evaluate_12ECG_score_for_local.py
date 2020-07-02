@@ -17,40 +17,49 @@
 # different misclassification errors.
 
 import numpy as np, os, os.path, sys
-from dataset_32cls_60s_3fil import *
-sdf = pd.read_csv(DATA_DIR + '/SNOMED_full_list_.csv')
 
 def evaluate_12ECG_score(label_directory, output_directory):
     # Define the weights, the SNOMED CT code for the normal class, and equivalent SNOMED CT codes.
-    weights_file = '/home1/cqn/CinC/CinC2020_official/metric/weights.csv'
+    weights_file = 'weights.csv'
     normal_class = '426783006'
     equivalent_classes = [['713427006', '59118001'], ['284470004', '63593006'], ['427172004', '17338001']]
 
     # Find the label and output files.
-    global label_files
+    print('Finding label and output files...')
     label_files, output_files = find_challenge_files(label_directory, output_directory)
 
     # Load the labels and outputs.
+    print('Loading labels and outputs...')
     label_classes, labels = load_labels(label_files, normal_class, equivalent_classes)
     output_classes, binary_outputs, scalar_outputs = load_outputs(output_files, normal_class, equivalent_classes)
 
     # Organize/sort the labels and outputs.
+    print('Organizing labels and outputs...')
     classes, labels, binary_outputs, scalar_outputs = organize_labels_outputs(label_classes, output_classes, labels, binary_outputs, scalar_outputs)
 
     # Load the weights for the Challenge metric.
+    print('Loading weights...')
     weights = load_weights(weights_file, classes)
 
     # Evaluate the model by comparing the labels and outputs.
+    print('Evaluating model...')
 
+    print('- AUROC and AUPRC...')
     auroc, auprc = compute_auc(labels, scalar_outputs)
 
+    print('- Accuracy...')
     accuracy = compute_accuracy(labels, binary_outputs)
 
+    print('- F-measure...')
     f_measure = compute_f_measure(labels, binary_outputs)
 
+    print('- F-beta and G-beta measures...')
     f_beta_measure, g_beta_measure = compute_beta_measures(labels, binary_outputs, beta=2)
 
+    print('- Challenge metric...')
     challenge_metric = compute_challenge_metric(weights, labels, binary_outputs, classes, normal_class)
+
+    print('Done.')
 
     # Return the results.
     return auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric
@@ -525,76 +534,12 @@ def compute_modified_confusion_matrix(labels, outputs):
 
     return A
 
-# Compute modified confusion matrix for multi-class, multi-label tasks.
-def compute_modified_confusion_matrix_cqn(labels, outputs, classes):
-    # Compute a binary multi-class, multi-label confusion matrix, where the rows
-    # are the labels and the columns are the outputs.
-    num_recordings, num_classes = np.shape(labels)
-    A = np.zeros((num_classes, num_classes))
-
-    # Iterate over all of the recordings.
-    a = 0
-    b = 0
-    c = 0
-    d = 0
-    for i in range(num_recordings):
-        if outputs[i, 8] and labels[i,8]:
-            a += 1
-        if labels[i, 8] and outputs[i, 4]:
-            b += 1
-        if labels[i, 8]:
-            c += 1
-
-        num_outputs = float(np.sum(outputs[i, :]))
-        # Iterate over all of the classes.
-        for j in [8]:
-            # Assign full and/or partial credit for each positive class.
-            if labels[i, j]:
-                for k in range(num_classes):
-                    if outputs[i, k]:
-                        if j == 8 and k == 4:
-                            print(label_files[i])
-                            d += 1
-                        A[j, k] += 1.0
-
-    # print()
-    # print(classes)
-    # print(a)
-    # print(b)
-    # print(c)
-    # print(d)
-    # print(A[8])
-    # exit()
-
-    return A
-
 # Compute the evaluation metric for the Challenge.
 def compute_challenge_metric(weights, labels, outputs, classes, normal):
     num_recordings, num_classes = np.shape(labels)
     normal_index = classes.index(normal)
 
     # Compute observed score.
-    if 0 :
-        A = compute_modified_confusion_matrix_cqn(labels, outputs, classes)
-        classes_a = []
-        for i, c in enumerate(classes):
-            classes_a.append(sdf[sdf.SNOMED_CT_Code == int(c)]['Abbreviation'].values[0])
-
-        table = []
-        first_line = ['classes']
-        first_line.extend(classes_a)
-        table.append(first_line)
-
-        for i in range(len(classes_a)):
-            line = [classes_a[i]]
-            line.extend(A[i])
-
-            table.append(line)
-
-        df = pd.DataFrame(data=table)
-        out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-32cls/cm.csv' % (0)
-        df.to_csv(out_dir, index=False)
-    # exit()
     A = compute_modified_confusion_matrix(labels, outputs)
     observed_score = np.nansum(weights * A)
 
@@ -617,7 +562,10 @@ def compute_challenge_metric(weights, labels, outputs, classes, normal):
     return normalized_score
 
 if __name__ == '__main__':
-    auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric = evaluate_12ECG_score(sys.argv[1], sys.argv[2])
+    predict_path = '/home1/cqn/CinC/predict'
+    truth_path = '/home1/cqn/CinC/truth'
+    auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric = evaluate_12ECG_score(
+        truth_path, predict_path)
 
     output_string = 'AUROC,AUPRC,Accuracy,F-measure,Fbeta-measure,Gbeta-measure,Challenge metric\n{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f},{:.3f}'.format(auroc, auprc, accuracy, f_measure, f_beta_measure, g_beta_measure, challenge_metric)
     if len(sys.argv) > 3:

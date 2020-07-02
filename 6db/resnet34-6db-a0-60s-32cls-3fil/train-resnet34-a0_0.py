@@ -3,9 +3,9 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model.model_resnet34 import *
-from dataset_32cls_60s import *
+from dataset_32cls_60s_3fil import *
 from evaluate_12ECG_score import *
-from out_result import *
+# from out_result import *
 
 ################################################################################################
 def save_challenge_predictions(output_directory, filename, scores, labels, classes):
@@ -85,9 +85,9 @@ def do_valid(net, valid_loader):
 def run_train():
     fold = 0
     global out_dir
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-32cls'%(fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-32cls-3fil'%(fold)
     initial_checkpoint = None
-    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-32cls/checkpoint/00048400_model.pth'%(fold)
+    # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/result-resnet34-6db-a%d-60s-25cls/checkpoint/00121200_model.pth'%(fold)
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
@@ -251,7 +251,7 @@ def run_train():
                 log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
                 log.write('\n')
 
-            exit()
+            # exit()
 
             top_loss = np.array([0.15 for i in range(10)])
             top_F2 = [0.83 for i in range(10)]
