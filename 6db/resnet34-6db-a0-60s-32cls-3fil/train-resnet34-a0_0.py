@@ -3,7 +3,7 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model.model_resnet34 import *
-from dataset_32cls_60s_3fil import *
+# from dataset_32cls_60s_3fil import *
 from evaluate_12ECG_score import *
 # from out_result import *
 

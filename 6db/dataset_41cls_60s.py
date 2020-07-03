@@ -4,8 +4,8 @@ from scipy import signal
 #--------------
 DATA_DIR = DATA_ROOT_PATH + '/CinC2020_V1'
 # ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
-temp_class_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/40cls_dx_mapping_scored.csv')['SNOMED CT Code'].tolist()
-unscored_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/68_dx_mapping_unscored.csv')['SNOMED CT Code'].tolist()
+temp_class_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/41cls_dx_mapping_scored.csv')['SNOMED CT Code'].tolist()
+unscored_map = pd.read_csv(DATA_DIR + '/evaluation-2020-master/68cls_dx_mapping_unscored.csv')['SNOMED CT Code'].tolist()
 unscored_map = [str(int(i)) for i in unscored_map]
 same_class = {'713427006' : '59118001', '63593006' : '284470004', '17338001' : '427172004'}
 class_map = []

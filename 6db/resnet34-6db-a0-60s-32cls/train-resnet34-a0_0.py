@@ -67,6 +67,11 @@ def do_valid(net, valid_loader):
     valid_predict = np.vstack(valid_predict)
     valid_predict_class = valid_predict>0.5
 
+    print()
+    # print(np.sum(valid_predict_class[:,8]))
+    # print(np.sum(valid_predict_class[:,12]))
+    valid_predict_class[:, -3] = 0
+    # valid_predict_class[:, 15] = 0
     for i, infor in enumerate(infors):
         save_challenge_predictions(valid_loader.dataset.predict_path, infor.ecg_id, valid_predict[i][:-1],
                                    valid_predict_class[i][:-1], class_map[:-1])
