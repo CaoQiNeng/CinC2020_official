@@ -1,7 +1,7 @@
 from common import *
 
 def run_make_train_5F():
-    image_file = glob.glob(DATA_ROOT_PATH + '/CinC2020_V1/overall/*.mat')
+    image_file = glob.glob(DATA_ROOT_PATH + '/training2017/*.mat')
     image_file = [(os.path.split(i)[-1]).split('.')[0] for i in image_file]
 
     random.shuffle(image_file)
@@ -15,7 +15,7 @@ def run_make_train_5F():
         train = list(set(image_file) - set(valid))
 
         print(set(train).intersection(valid))
-        np.save(DATA_ROOT_PATH + '/CinC2020_V1/split_5F_v0/train_a%d_%d.npy' % (n, len(train)), train)
-        np.save(DATA_ROOT_PATH + '/CinC2020_V1/split_5F_v0/valid_a%d_%d.npy' % (n, len(valid)), valid)
+        np.save(DATA_ROOT_PATH + '/training2017/train_a%d_%d.npy' % (n, len(train)), train)
+        np.save(DATA_ROOT_PATH + '/training2017/valid_a%d_%d.npy' % (n, len(valid)), valid)
 
 run_make_train_5F()
