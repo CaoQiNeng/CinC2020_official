@@ -163,30 +163,30 @@ def null_collate(batch):
     input = []
     label = []
     infor = []
+    f = []
     for b in range(batch_size):
         input.append(batch[b][0])
         label.append(batch[b][1])
-        infor.append(batch[b][-1])
+        infor.append(batch[b][2])
+        f.append(batch[b][3])
 
     label = torch.from_numpy(np.stack(label)).float()
     input = torch.from_numpy(np.stack(input)).float()
+    f = torch.from_numpy(np.stack(f)).float()
 
-    return input, label, infor
+    return input, label, infor, f
 
 def run_check_DataLoader():
     batch_size = 72
-    train_dataset = CinCDataset(
-        mode='train',
-        csv='train.csv',
-        split='valid_a%d_687.npy' % 0,
-    )
+    train_dataset = CinCDataset('train_a2_7676.npy')
     train_loader = DataLoader(
         train_dataset,
-        # sampler     = RandomSampler(train_dataset),
-        shuffle = True,
+        sampler=RandomSampler(train_dataset),
+        # sampler = CustomSampler(train_dataset),
+        # shuffle=True,
         batch_size=batch_size,
         drop_last=False,
-        num_workers=0,
+        num_workers=1,
         pin_memory=True,
         collate_fn=null_collate
     )
@@ -196,7 +196,7 @@ def run_check_DataLoader():
 
     a = 0
     for t, (input, truth, infor, f) in enumerate(train_loader):
-        print(infor.ecg_id)
+        print(infor[0].ecg_id)
         print(truth)
         print(f)
         exit()
@@ -241,6 +241,6 @@ def run_check_DataSet():
 
 # main #################################################################
 if __name__ == '__main__':
-    run_check_DataSet()
+    run_check_DataLoader()
 
     print('\nsucess!')
