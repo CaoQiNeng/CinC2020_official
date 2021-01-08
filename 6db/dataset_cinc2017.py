@@ -2,14 +2,16 @@ from common import *
 from scipy import signal
 
 #--------------
-DATA_DIR = DATA_ROOT_PATH + '/CinC2017/training2017'
+DATA_DIR = DATA_ROOT_PATH + '/CinC2017'
 # ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
 class_map = np.array(['A', 'N', 'O', '~'])
 
 class CinCDataset(Dataset):
     def __init__(self, split):
-        temp_df = pd.read_csv(DATA_DIR + '/REFERENCE_V2.csv') #.fillna('')
-        s = np.load(DATA_DIR + '/' + split)
+        temp_df = pd.read_csv(DATA_DIR + '/training2017/REFERENCE_V2.csv') #.fillna('')
+        s = np.load(DATA_DIR + '/training2017/' + split)
+
+        self.featrue_list = sio.loadmat(DATA_DIR + '/feature.mat')['feature']
 
         df = pd.DataFrame(columns = ['ids', 'labels'])
         q = 0
@@ -50,7 +52,7 @@ class CinCDataset(Dataset):
 
         label = self.labels[index]
 
-        temp_ecg = sio.loadmat(DATA_DIR + '/%s.mat' % ecg_id)['val']
+        temp_ecg = sio.loadmat(DATA_DIR + '/training2017/%s.mat' % ecg_id)['val']
         temp_ecg = np.array(temp_ecg / 1000)
 
         ecg = np.zeros((1, 9000), dtype=np.float32)
@@ -61,7 +63,7 @@ class CinCDataset(Dataset):
             ecg_id = ecg_id,
         )
 
-        return ecg, label, infor
+        return ecg, label, infor, self.featrue_list[index]
 
 class CustomSampler(Sampler):
 
@@ -193,9 +195,11 @@ def run_check_DataLoader():
     ecg_save_path = 'F:/data_root/CinC2020/check_ecg'
 
     a = 0
-    for t, (input, truth, infor) in enumerate(train_loader):
+    for t, (input, truth, infor, f) in enumerate(train_loader):
         print(infor.ecg_id)
         print(truth)
+        print(f)
+        exit()
         # for i in range(len(infor)):
         #     with open(label_save_path + '/' + infor[i].ecg_id + '.json', 'w') as f:
         #         json_str = json.dumps({'label' : truth[i].tolist()})
@@ -219,8 +223,11 @@ def run_check_DataSet():
     ecg_save_path = DATA_DIR + '/check_ecg'
 
     a = 0
-    for t, (input, truth, infor) in enumerate(val_dataset):
-
+    for t, (input, truth, infor, f) in enumerate(val_dataset):
+        print(infor.ecg_id)
+        print(truth)
+        print(f)
+        exit()
         # sio.savemat(ecg_save_path + '/%s.mat'%infor.ecg_id, {'ecgraw' : input})
 
         a += 1
