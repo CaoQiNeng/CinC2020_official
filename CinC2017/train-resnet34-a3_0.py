@@ -111,13 +111,16 @@ def do_valid(net, valid_loader, out_dir=None):
         net.eval()
         input  = input.cuda()
         truth  = truth.cuda()
+        f = f.cuda()
 
         # ag = np.zeros((batch_size, 5))
         with torch.no_grad():
-            logit = net(input, f[:5]) #data_parallel(net, input)
+            f = torch.where(torch.isnan(f), torch.full_like(f, 0), f)
+            logit = net(input, f[:,44:49]) #data_parallel(net, input)
             probability = torch.sigmoid(logit)
             # probability[:,4:6] = 1
             # truth[:, 4:6] = 1
+
 
             loss = F.binary_cross_entropy(probability, truth)
 
@@ -302,6 +305,7 @@ def run_train():
 
         optimizer.zero_grad()
         for t, (input, truth, infor, f) in enumerate(train_loader):
+            f = torch.where(torch.isnan(f), torch.full_like(f, 0), f)
             batch_size = len(infor)
             iter  = i + start_iter
             epoch = (iter-start_iter)*batch_size/len(train_dataset) + start_epoch
@@ -352,8 +356,9 @@ def run_train():
             net.train()
             input = input.cuda()
             truth = truth.cuda()
+            f = f.cuda()
 
-            logit = net(input, f[:5])
+            logit = net(input, f[:,44:49])
             probability = torch.sigmoid(logit)
 
             loss = F.binary_cross_entropy(probability, truth)
