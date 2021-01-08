@@ -3,7 +3,9 @@ os.environ['CUDA_VISIBLE_DEVICES']='0'
 
 from common  import *
 from model.model_seresnet import *
+# from model.model_resnet34 import *
 from dataset_cinc2017 import *
+from sklearn.metrics import f1_score, precision_score, recall_score
 
 ################################################################################################
 def compute_beta_score(labels, output, beta, num_classes, check_errors=True):
@@ -110,8 +112,9 @@ def do_valid(net, valid_loader, out_dir=None):
         input  = input.cuda()
         truth  = truth.cuda()
 
+        # ag = np.zeros((batch_size, 5))
         with torch.no_grad():
-            logit = data_parallel(net, input) #net(input)
+            logit = net(input) #data_parallel(net, input)
             probability = torch.sigmoid(logit)
             # probability[:,4:6] = 1
             # truth[:, 4:6] = 1
@@ -134,23 +137,28 @@ def do_valid(net, valid_loader, out_dir=None):
     valid_loss = valid_loss / (valid_num+1e-8)
 
     valid_truth = np.vstack(valid_truth)
+    valid_truth = np.argmax(valid_truth, axis=1)
     valid_predict = np.vstack(valid_predict)
+    valid_predict = np.argmax(valid_predict, axis=1)
 
-    accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
-    valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
+    # accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
+    # valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
+    f1 = f1_score(valid_truth, valid_predict, average=None)
+    precision = precision_score(valid_truth, valid_predict, average=None)
+    recall = recall_score(valid_truth, valid_predict, average=None)
 
-    return [accuracy, f_beta,g_beta,f_measure], valid_loss, valid_precision, valid_recall
+    return f1, recall, precision, valid_loss
 
 def run_train():
     fold = 0
     global out_dir
-    out_dir = ROOT_PATH + '/CinC2020_official_logs/cinc2017'%(fold)
+    out_dir = ROOT_PATH + '/CinC2020_official_logs/cinc2017'
     initial_checkpoint = None
-    initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/cinc2017/checkpoint/00028400_model.pth'%(fold)
+    # initial_checkpoint = ROOT_PATH + '/CinC2020_official_logs/cinc2017/checkpoint/00028400_model.pth'
 
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
-    batch_size = 18 #8
+    batch_size = 16 #8
 
     ## setup  -----------------------------------------------------------------------------
     for f in ['checkpoint','train','valid','backup'] : os.makedirs(out_dir +'/'+f, exist_ok=True)
@@ -171,7 +179,7 @@ def run_train():
     ## dataset ----------------------------------------
     log.write('** dataset setting **\n')
 
-    train_dataset = CinCDataset('train_a0_7676.npy')
+    train_dataset = CinCDataset('train_a2_7676.npy')
     train_loader = DataLoader(
         train_dataset,
         sampler     = RandomSampler(train_dataset),
@@ -184,7 +192,7 @@ def run_train():
         collate_fn=null_collate
     )
 
-    val_dataset = CinCDataset('valid_a0_852.npy')
+    val_dataset = CinCDataset('valid_a2_852.npy')
     valid_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -202,7 +210,8 @@ def run_train():
 
     ## net ----------------------------------------
     log.write('** net setting **\n')
-    net = resnet34(12, num_classes=len(class_map)).cuda()
+    net = resnet34(False, in_channel=1, out_channel=len(class_map)).cuda()
+    # net = Net(1, num_classes=len(class_map)).cuda()
     log.write('\tinitial_checkpoint = %s\n' % initial_checkpoint)
 
     if initial_checkpoint is not None:
@@ -246,15 +255,17 @@ def run_train():
     log.write('** start training here! **\n')
     log.write('   batch_size=%d,  iter_accum=%d\n'%(batch_size,iter_accum))
     log.write('   experiment  = %s\n' % str(__file__.split('/')[-2:]))
-    log.write('----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
-    log.write('mode    rate    iter  epoch | F1    | loss  | AF             | I-AVB          | LBBB           | Normal         | time        \n')
-    log.write('----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n')
+    log.write('----------------------------|-------------------------------------------------------------------------------------------------\n')
+    log.write('mode    rate    iter  epoch | F1    | loss  | A              | N              | O              | ~              | time        \n')
+    log.write('------------------------------------------------------------------------------------------------------------------------------\n')
               # train  0.01000   0.5   0.2 | 0.648 | 1.11  | 1.11 0.29 0.29 | 1.11 0.29 0.29 | 1.11 0.29 0.29 | 1.11 0.29 0.29 | 0 hr 05 min
-    def message(rate, iter, epoch, CinC, loss, precision, recall, mode='print', train_mode = 'train'):
+    def message(rate, iter, epoch, loss, f1, precision, recall, mode='print', train_mode = 'train'):
         f1_precision_recall = []
-        # for p, r in zip(precision, recall) :
-        #     f1_precision_recall.append(p)
-        #     f1_precision_recall.append(r)
+        for f11, p, r in zip(f1, precision, recall) :
+            f1_precision_recall.append(f11)
+            f1_precision_recall.append(p)
+            f1_precision_recall.append(r)
+
 
         if mode==('print'):
             asterisk = ' '
@@ -263,7 +274,7 @@ def run_train():
 
         text = \
             '%s   %0.5f %5.1f%s %4.1f | '%(train_mode, rate, iter/1000, asterisk, epoch,) +\
-            '%0.3f | '%(*CinC, ) +\
+            '%0.3f | '%(np.mean(f1), ) +\
             '%4.3f | '%loss +\
             '%0.2f %0.2f %0.2f | %0.2f %0.2f %0.2f | %0.2f %0.2f %0.2f | %0.2f %0.2f %0.2f | '%(*f1_precision_recall, ) +\
             '%s' % (time_to_str((timer() - start_timer),'min'))
@@ -297,13 +308,13 @@ def run_train():
 
             #if 0:
             if (iter % iter_valid==0):
-                CinC, valid_loss, valid_precision, valid_recall = do_valid(net, valid_loader, out_dir) #
+                valid_f1, valid_recall, valid_precision, valid_loss = do_valid(net, valid_loader, out_dir) #
                 pass
 
             if (iter % iter_log==0):
                 print('\r',end='',flush=True)
-                print(message(rate, iter, epoch, [train_accuracy, train_f_beta, train_g_beta, train_f_measure], train_loss, train_precision, train_recall, mode='log', train_mode='train'))
-                log.write(message(rate, iter, epoch, CinC, valid_loss, valid_precision, valid_recall,mode='log', train_mode='valid'))
+                # print(message(rate, iter, epoch, valid_loss, valid_f1, valid_precision, valid_recall, mode='log', train_mode='train'))
+                log.write(message(rate, iter, epoch, valid_loss, valid_f1, valid_precision, valid_recall, mode='log', train_mode='valid'))
                 log.write('\n')
 
             top_loss = np.array([0.15 for i in range(10)])
@@ -353,33 +364,23 @@ def run_train():
                 optimizer.step()
                 optimizer.zero_grad()
 
-            predict = probability.cpu().detach().numpy()
-            truth = truth.cpu().numpy().astype(int)
-            batch_precision, batch_recall= metric(truth, (predict>0.5).astype(int))
-            batch_accuracy, batch_f_measure, batch_f_beta, batch_g_beta = compute_beta_score(truth, predict>0.5, 2,
-                                                                     truth.shape[1], check_errors=True)
+            train_predict = probability.cpu().detach().numpy()
+            train_truth = truth.cpu().numpy().astype(int)
 
-            # print statistics  --------
-            batch_loss      = loss
-            train_predict_list.append(predict)
-            train_truth_list.append(truth)
-            sum_train_loss += loss * batch_size
-            sum_train      += batch_size
-            if iter%iter_smooth == 0:
-                train_loss = sum_train_loss / (sum_train+1e-12)
-                train_predict_list = np.vstack(train_predict_list)
-                train_truth_list = np.vstack(train_truth_list)
-                train_precision, train_recall = metric(train_truth_list, (train_predict_list>0.5).astype(int))
-                train_accuracy, train_f_measure, train_f_beta, train_g_beta = compute_beta_score(train_truth_list, train_predict_list>0.5, 2,
-                                                                         train_truth_list.shape[1], check_errors=True)
-                train_predict_list = []
-                train_truth_list = []
-                sum_train_loss = 0
-                sum_train      = 0
+            train_truth = np.vstack(train_truth)
+            train_truth = np.argmax(train_truth, axis=1)
+            train_predict = np.vstack(train_predict)
+            train_predict = np.argmax(train_predict, axis=1)
+
+            # accuracy, f_measure, f_beta, g_beta = compute_beta_score(valid_truth, valid_predict>0.5, 2, valid_truth.shape[1], check_errors=True)
+            # valid_precision, valid_recall = metric(valid_truth, (valid_predict>0.5).astype(int))
+            train_f1 = f1_score(train_truth, train_predict, average=None)
+            train_precision = precision_score(train_truth, train_predict, average=None)
+            train_recall = recall_score(train_truth, train_predict, average=None)
 
             # print(batch_loss)
             print('\r',end='',flush=True)
-            print(message(rate, iter, epoch, [batch_accuracy, batch_f_beta, batch_g_beta, batch_f_measure], batch_loss, batch_precision, batch_recall, mode='log', train_mode='train'), end='',flush=True)
+            # print(message(rate, iter, epoch, loss, train_f1, train_precision, train_recall, mode='log', train_mode='train'), end='',flush=True)
             i=i+1
 
         pass  #-- end of one data loader --

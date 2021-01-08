@@ -2,7 +2,7 @@ from common import *
 from scipy import signal
 
 #--------------
-DATA_DIR = DATA_ROOT_PATH + '/training2017'
+DATA_DIR = DATA_ROOT_PATH + '/CinC2017/training2017'
 # ['AF', 'I-AVB', 'LBBB', 'Normal', 'PAC',  'PVC', 'RBBB', 'STD', 'STE']
 class_map = np.array(['A', 'N', 'O', '~'])
 
@@ -39,9 +39,6 @@ class CinCDataset(Dataset):
         string  = ''
         string += '\tlen = %d\n'%len(self)
         string += '\n'
-        string += '\tmode     = %s\n'%self.mode
-        string += '\tsplit    = %s\n'%self.split
-        string += '\tcsv      = %s\n'%str(self.csv)
         string += '\tnum_image = %d\n'%self.num_image
         return string
 

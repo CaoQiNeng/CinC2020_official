@@ -186,7 +186,7 @@ class ResNet(nn.Module):
 
 
 
-    def forward(self, x, ag):
+    def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -199,6 +199,7 @@ class ResNet(nn.Module):
 
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
+        ag = torch.zeros((x.shape[0], 5)).cuda()
         ag = self.fc1(ag)
         x = torch.cat((ag, x), dim=1)
         x = self.fc(x)
