@@ -207,6 +207,7 @@ class ResNet(nn.Module):
         # exit()
         # ag = torch.sigmoid(ag)
         ag = self.fc1(ag)
+
         x = torch.cat((ag, x), dim=1)
         x = self.fc(x)
         #x = self.sig(x)

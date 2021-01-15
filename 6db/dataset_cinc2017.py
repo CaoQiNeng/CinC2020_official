@@ -8,6 +8,7 @@ class_map = np.array(['A', 'N', 'O', '~'])
 
 class CinCDataset(Dataset):
     def __init__(self, split):
+        self.split = split
         temp_df = pd.read_csv(DATA_DIR + '/training2017/REFERENCE_V2.csv') #.fillna('')
         s = np.load(DATA_DIR + '/training2017/' + split)
 
@@ -42,6 +43,7 @@ class CinCDataset(Dataset):
         string += '\tlen = %d\n'%len(self)
         string += '\n'
         string += '\tnum_image = %d\n'%self.num_image
+        string += '\tsplit = %d\n' % self.split
         return string
 
     def __len__(self):
