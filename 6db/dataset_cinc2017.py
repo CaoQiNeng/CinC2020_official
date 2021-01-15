@@ -11,7 +11,7 @@ class CinCDataset(Dataset):
         temp_df = pd.read_csv(DATA_DIR + '/training2017/REFERENCE_V2.csv') #.fillna('')
         s = np.load(DATA_DIR + '/training2017/' + split)
 
-        self.featrue_list = sio.loadmat(DATA_DIR + '/feature.mat')['feature']
+        self.featrue_list = sio.loadmat(DATA_DIR + '/feature_st.mat')['features_st']
 
         df = pd.DataFrame(columns = ['ids', 'labels'])
         q = 0
