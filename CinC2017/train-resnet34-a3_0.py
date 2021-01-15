@@ -99,7 +99,7 @@ def metric(truth, predict):
     return precision, recall
 
 #------------------------------------
-def do_valid(net, valid_loader, out_dir=None):
+def do_valid(net, valid_loader, out_dir=None, rd = []):
     valid_loss = 0
     valid_predict = []
     valid_truth = []
@@ -116,7 +116,7 @@ def do_valid(net, valid_loader, out_dir=None):
         # ag = np.zeros((batch_size, 5))
         with torch.no_grad():
             f = torch.where(torch.isnan(f), torch.full_like(f, 0), f)
-            logit = net(input, f[:,44:49]) #data_parallel(net, input)
+            logit = net(input, f[:, [1,3,7,9,11]]) #data_parallel(net, input)
             probability = torch.sigmoid(logit)
             # probability[:,4:6] = 1
             # truth[:, 4:6] = 1
@@ -162,6 +162,8 @@ def run_train():
     schduler = NullScheduler(lr=0.1)
     iter_accum = 1
     batch_size = 16 #8
+
+    rd = np.random.randint(0, 488, 5)
 
     ## setup  -----------------------------------------------------------------------------
     for f in ['checkpoint','train','valid','backup'] : os.makedirs(out_dir +'/'+f, exist_ok=True)
@@ -209,6 +211,7 @@ def run_train():
     log.write('batch_size = %d\n'%(batch_size))
     log.write('train_dataset : \n%s\n'%(train_dataset))
     log.write('valid_dataset : \n%s\n'%(val_dataset))
+    log.write('rd : \n%s\n' % (str(rd)))
     log.write('\n')
 
     ## net ----------------------------------------
@@ -312,7 +315,7 @@ def run_train():
 
             #if 0:
             if (iter % iter_valid==0):
-                valid_f1, valid_recall, valid_precision, valid_loss = do_valid(net, valid_loader, out_dir) #
+                valid_f1, valid_recall, valid_precision, valid_loss = do_valid(net, valid_loader, out_dir, rd) #
                 pass
 
             if (iter % iter_log==0):
@@ -358,7 +361,7 @@ def run_train():
             truth = truth.cuda()
             f = f.cuda()
 
-            logit = net(input, f[:,44:49])
+            logit = net(input, f[:,[1,3,7,9,11]])
             probability = torch.sigmoid(logit)
 
             loss = F.binary_cross_entropy(probability, truth)
