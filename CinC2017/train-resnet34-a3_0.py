@@ -1,11 +1,13 @@
 import os
 os.environ['CUDA_VISIBLE_DEVICES']='0'
 
+from datetime import datetime
 from common  import *
 from model.model_seresnet import *
 # from model.model_resnet34 import *
 from dataset_cinc2017 import *
 from sklearn.metrics import f1_score, precision_score, recall_score
+import csv
 
 ################################################################################################
 def compute_beta_score(labels, output, beta, num_classes, check_errors=True):
@@ -116,7 +118,7 @@ def do_valid(net, valid_loader, out_dir=None, rd = []):
         # ag = np.zeros((batch_size, 5))
         with torch.no_grad():
             f = torch.where(torch.isnan(f), torch.full_like(f, 0), f)
-            logit = net(input, f[:, [1,3,7,9,11]]) #data_parallel(net, input)
+            logit = net(input, f[:, [184, 241,  37, 330, 259]]) #data_parallel(net, input)
             probability = torch.sigmoid(logit)
             # probability[:,4:6] = 1
             # truth[:, 4:6] = 1
@@ -152,7 +154,7 @@ def do_valid(net, valid_loader, out_dir=None, rd = []):
 
     return f1, recall, precision, valid_loss
 
-def run_train():
+def run_train(i, rd):
     fold = 0
     global out_dir
     out_dir = ROOT_PATH + '/CinC2020_official_logs/cinc2017'
@@ -163,13 +165,11 @@ def run_train():
     iter_accum = 1
     batch_size = 16 #8
 
-    rd = np.random.randint(0, 488, 5)
-
     ## setup  -----------------------------------------------------------------------------
     for f in ['checkpoint','train','valid','backup'] : os.makedirs(out_dir +'/'+f, exist_ok=True)
+    IDENTIFIER = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     backup_project_as_zip(PROJECT_PATH, out_dir +'/backup/code.train.%s.zip'%IDENTIFIER)
 
-    log = Logger()
     log.open(out_dir+'/log.train.txt',mode='a')
     log.write('\n--- [START %s] %s\n\n' % (IDENTIFIER, '-' * 64))
     log.write('\t%s\n' % COMMON_STRING)
@@ -184,7 +184,7 @@ def run_train():
     ## dataset ----------------------------------------
     log.write('** dataset setting **\n')
 
-    train_dataset = CinCDataset('train_a2_7676.npy')
+    train_dataset = CinCDataset('train_a%d_7676.npy'%i)
     train_loader = DataLoader(
         train_dataset,
         sampler     = RandomSampler(train_dataset),
@@ -197,7 +197,7 @@ def run_train():
         collate_fn=null_collate
     )
 
-    val_dataset = CinCDataset('valid_a2_852.npy')
+    val_dataset = CinCDataset('valid_a%d_852.npy'%i)
     valid_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
@@ -234,7 +234,8 @@ def run_train():
     #optimizer = torch.optim.RMSprop(net.parameters(), lr =0.0005, alpha = 0.95)
     optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, net.parameters()), lr=schduler(0), momentum=0.0, weight_decay=0.0)
 
-    num_iters   = 3000*1000
+    num_iters   = 19200
+    # num_iters = 2
     iter_smooth = 200
     iter_log    = 200
     iter_valid  = 200
@@ -298,6 +299,7 @@ def run_train():
     train_f_measure = 0
     iter = 0
     i    = 0
+    best_f1 = 0
 
     start_timer = timer()
     while  iter<num_iters:
@@ -316,6 +318,8 @@ def run_train():
             #if 0:
             if (iter % iter_valid==0):
                 valid_f1, valid_recall, valid_precision, valid_loss = do_valid(net, valid_loader, out_dir, rd) #
+                if (valid_f1[0] + valid_f1[1] + valid_f1[2]) / 3 > best_f1:
+                    best_f1 = (valid_f1[0] + valid_f1[1] + valid_f1[2]) / 3
                 pass
 
             if (iter % iter_log==0):
@@ -361,7 +365,7 @@ def run_train():
             truth = truth.cuda()
             f = f.cuda()
 
-            logit = net(input, f[:,[1,3,7,9,11]])
+            logit = net(input, f[:, rd.tolist()])
             probability = torch.sigmoid(logit)
 
             loss = F.binary_cross_entropy(probability, truth)
@@ -394,9 +398,30 @@ def run_train():
         pass  #-- end of one data loader --
     pass #-- end of all iterations --
     log.write('\n')
+    log.write('iter: %d, best: %f\n'%(iter, best_f1))
+
+    return iter, best_f1
 
 # main #################################################################
 if __name__ == '__main__':
     print( '%s: calling main function ... ' % os.path.basename(__file__))
+    log = Logger()
+    result_csv = Logger()
+    result_csv.open('./result.csv', mode='a')
+    result_csv.write("rd,best_f1_mean\n")
 
-    run_train()
+    while(1):
+        rd = np.random.randint(0, 466, 5)
+        best_f1_mean = 0
+        for i in range(3):
+            iter, best_f1 = run_train(i, rd)
+            best_f1_mean += best_f1
+
+        best_f1_mean =  best_f1_mean / 3
+
+        log.write('rd: %s, best_f1_mean: %f\n' % (str(rd), best_f1_mean))
+
+        result_csv.write("%s, %f\n"%(str(rd), best_f1_mean))
+
+
+

@@ -43,6 +43,7 @@ class CinCDataset(Dataset):
         string += '\tlen = %d\n'%len(self)
         string += '\n'
         string += '\tnum_image = %d\n'%self.num_image
+        string += '\n'
         string += '\tsplit = %d\n' % self.split
         return string
 
