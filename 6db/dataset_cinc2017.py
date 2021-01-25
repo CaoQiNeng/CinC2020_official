@@ -44,7 +44,7 @@ class CinCDataset(Dataset):
         string += '\n'
         string += '\tnum_image = %d\n'%self.num_image
         string += '\n'
-        string += '\tsplit = %d\n' % self.split
+        string += '\tsplit = %s\n' % self.split
         return string
 
     def __len__(self):

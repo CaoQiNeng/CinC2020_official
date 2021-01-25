@@ -200,7 +200,7 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
 
-        # ag1 = torch.zeros((x.shape[0], 5)).cuda()
+        ag = torch.zeros((x.shape[0], 5)).cuda()
 
         # print(ag1.shape)
         # print(ag.shape)
